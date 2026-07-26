@@ -1,0 +1,180 @@
+/*
+ * Pixel-measured chord-sheet layout. Ported near-verbatim from the pre-migration
+ * app rather than expressed in Tailwind utilities — SongDoc.tsx measures real
+ * rendered heights against these exact rules to pack sections into columns and
+ * pages. The measure pass (.sp-measure) must inherit identical type metrics to
+ * the rendered page, or the packed heights stop matching what is drawn and
+ * sections overflow their column.
+ */
+
+.sp-scalewrap {
+  transform-origin: top center;
+}
+
+.sp-doc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+
+  --sp-font: 13px;
+  --sp-col-w: 698px;
+  --sp-page-w: 794px;
+  --sp-page-h: 1122px;
+  --sp-pad-x: 48px;
+  --sp-pad-top: 40px;
+  --sp-pad-bottom: 52px;
+  --sp-gutter: 32px;
+  --sp-gap: 18px;
+}
+
+.sp-page {
+  position: relative;
+  width: var(--sp-page-w);
+  height: var(--sp-page-h);
+  padding: var(--sp-pad-top) var(--sp-pad-x) var(--sp-pad-bottom);
+  background: #fff;
+  color: #111;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.13);
+  overflow: hidden;
+}
+
+/* Off-screen measurement pass. Must inherit identical type metrics to the
+   rendered page or the packed heights will not match what is drawn. */
+.sp-measure {
+  position: absolute;
+  top: -100000px;
+  left: 0;
+  visibility: hidden;
+  pointer-events: none;
+  background: #fff;
+  color: #111;
+}
+
+.sp-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 10px;
+  margin-bottom: 16px;
+  border-bottom: 1.5px solid #111;
+}
+.sp-title {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.sp-artist {
+  margin-top: 2px;
+  font-size: 13px;
+  color: #555;
+}
+.sp-meta {
+  flex: none;
+  font-size: 12px;
+  color: #444;
+  white-space: nowrap;
+}
+
+.sp-cols {
+  display: flex;
+  gap: var(--sp-gutter);
+  align-items: flex-start;
+}
+/* Pinned to the measured column width rather than flex-grown, so a partly
+   filled last page keeps its columns the same width as every other page. */
+.sp-col {
+  display: flex;
+  flex: 0 0 var(--sp-col-w);
+  flex-direction: column;
+  gap: var(--sp-gap);
+  width: var(--sp-col-w);
+  min-width: 0;
+}
+
+.sp-section {
+  break-inside: avoid;
+}
+.sp-sechead {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+.sp-secname {
+  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  font-size: calc(var(--sp-font) * 0.95);
+  font-weight: 600;
+  color: #111;
+}
+.sp-secnote {
+  font-size: calc(var(--sp-font) * 0.8);
+  font-style: italic;
+  color: #777;
+}
+
+/* --- chord over lyric --------------------------------------------------- */
+
+.sp-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  font-size: var(--sp-font);
+  line-height: 1.32;
+}
+
+/* A deliberate blank line between lyric groups, kept as vertical space. */
+.sp-line--blank {
+  height: calc(var(--sp-font) * 0.85);
+}
+
+.sp-seg {
+  display: inline-flex;
+  flex-direction: column;
+}
+
+/* Always present, so lines with and without chords keep the same baseline. */
+.sp-chordrow {
+  display: block;
+  min-height: calc(var(--sp-font) * 1.45);
+}
+
+.sp-chord {
+  display: inline-block;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-right: 6px;
+  background: #ebebeb;
+  color: #111;
+  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  font-size: calc(var(--sp-font) * 0.86);
+  font-weight: 600;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.sp-lyric {
+  white-space: pre;
+}
+
+.sp-line--chords {
+  gap: 2px;
+  margin-top: 2px;
+}
+
+.sp-foot {
+  position: absolute;
+  right: var(--sp-pad-x);
+  bottom: 18px;
+  font-size: 11px;
+  color: #999;
+}
+
+@media print {
+  .sp-page {
+    box-shadow: none;
+  }
+}

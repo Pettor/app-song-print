@@ -6,7 +6,7 @@
     "paths": {
       "~/*": ["./src/*"]
     },
-    "types": ["@config/typescript/types", "vite-plugin-pwa/client"]
+    "types": ["@config/typescript/types", "vite-plugin-pwa/client", "node"]
   },
   "include": ["**/*.ts", "**/*.tsx", "vite.config.ts"]
 }
