@@ -395,9 +395,9 @@ importers:
       clsx:
         specifier: catalog:ui
         version: 2.1.1
-      html2canvas:
-        specifier: 1.4.1
-        version: 1.4.1
+      html2canvas-pro:
+        specifier: 2.3.2
+        version: 2.3.2
       immer:
         specifier: catalog:state
         version: 11.1.15
@@ -4435,6 +4435,10 @@ packages:
 
   html-escaper@2.0.2:
     resolution: {integrity: sha512-H2iMtd0I4Mt5eYiapRdIDjp+XzelXQ0tFE4JS7YFwFevXXMmOp9myNrUvCg0D6ws8iqkRPBfKHgbwig1SmlLfg==}
+
+  html2canvas-pro@2.3.2:
+    resolution: {integrity: sha512-lYFaxtQM8exYVAtXmjdx8cjkw+/2GycRvSTcr2M2MuxXKuYlWe77+KFKuY92y/tzkvzA8XZTQIDlqoVZDB+mqQ==}
+    engines: {node: '>=16.0.0'}
 
   html2canvas@1.4.1:
     resolution: {integrity: sha512-fPU6BHNpsyIhr8yyMpTLLxAbkaK8ArIBcmZIRiBLiDhjeqvXolaEmDGmELFuX9I4xDcaKKcJl+TKZLqruBbmWA==}
@@ -8734,7 +8738,7 @@ snapshots:
   '@testing-library/dom@10.4.0':
     dependencies:
       '@babel/code-frame': 7.29.0
-      '@babel/runtime': 7.27.6
+      '@babel/runtime': 7.29.7
       '@types/aria-query': 5.0.4
       aria-query: 5.3.0
       chalk: 4.1.2
@@ -10399,10 +10403,16 @@ snapshots:
 
   html-escaper@2.0.2: {}
 
+  html2canvas-pro@2.3.2:
+    dependencies:
+      css-line-break: 2.1.0
+      text-segmentation: 1.0.3
+
   html2canvas@1.4.1:
     dependencies:
       css-line-break: 2.1.0
       text-segmentation: 1.0.3
+    optional: true
 
   http2-proxy@5.0.53: {}
 
@@ -12578,7 +12588,7 @@ snapshots:
       '@apideck/better-ajv-errors': 0.3.6(ajv@8.18.0)
       '@babel/core': 7.29.0
       '@babel/preset-env': 7.27.2(@babel/core@7.29.0)
-      '@babel/runtime': 7.27.6
+      '@babel/runtime': 7.29.7
       '@rollup/plugin-babel': 5.3.1(@babel/core@7.29.0)(@types/babel__core@7.20.5)(rollup@4.60.2)
       '@rollup/plugin-node-resolve': 15.3.1(rollup@4.60.2)
       '@rollup/plugin-replace': 2.4.2(rollup@4.60.2)
