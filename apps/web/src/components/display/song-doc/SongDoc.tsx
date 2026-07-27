@@ -99,13 +99,13 @@ function SongHeader({ song, semitones }: SongHeaderProps): ReactElement | null {
   if (!song.title && !song.artist && meta.length === 0) return null;
 
   return (
-    <header className="sp-header">
+    <div className="sp-header">
       <div className="sp-titles">
         {song.title && <h1 className="sp-title">{song.title}</h1>}
         {song.artist && <div className="sp-artist">{song.artist}</div>}
       </div>
       {meta.length > 0 && <div className="sp-meta">{meta.join(" · ")}</div>}
-    </header>
+    </div>
   );
 }
 
