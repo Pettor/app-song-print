@@ -1,18 +1,26 @@
 import { useCallback, useState } from "react";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { useIntl } from "react-intl";
 import { useSongEditorState } from "./-UseSongEditorState";
+import { useSongLiveMode } from "./-UseSongLiveMode";
 import { useSongPdfExport } from "./-UseSongPdfExport";
 import { useSongPreviewScale } from "./-UseSongPreviewScale";
+import { useSongTranspose } from "./-UseSongTranspose";
 import { lastPresetIdAtom } from "~/core/song-print/LastPresetAtoms";
-import { getPageSpec } from "~/core/song-print/PageFormats";
+import { SHEET_FONT_MAX, SHEET_FONT_MIN, getPageSpec } from "~/core/song-print/PageFormats";
+import { chordStyleAtom, sourceOpenAtom } from "~/core/song-print/SheetPrefsAtoms";
 import { downloadSong, openSongFile, savePreset, toFilename, writeSongFile } from "~/core/song-print/SongFileIo";
 import { SONGS, SONGS_SOURCE } from "~/core/song-print/SongLibrary";
-import type { Preset } from "~/core/song-print/SongTypes";
+import type { PageFormat, Preset } from "~/core/song-print/SongTypes";
 import { looksLikeTab, parseTab } from "~/core/song-print/TabImport";
+import { resolvedThemeModeAtom, themeModeAtom } from "~/core/theme/ThemeAtoms";
 import type { SongPrintViewProps } from "~/views/song-print/SongPrintView";
 
 const EMPTY_PRESET: Preset = { id: "", label: "", data: {} };
+
+function clamp(n: number, lo: number, hi: number): number {
+  return Math.min(hi, Math.max(lo, n));
+}
 
 /** The remembered preset, falling back to the first one if it has since gone. */
 function initialPreset(lastPresetId: string): Preset {
@@ -30,10 +38,18 @@ export function useSongPrintRoute(): SongPrintViewProps {
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  const [chordStyle, setChordStyle] = useAtom(chordStyleAtom);
+  const [isSourceOpen, setIsSourceOpen] = useAtom(sourceOpenAtom);
+  const [, setThemeMode] = useAtom(themeModeAtom);
+  const resolvedTheme = useAtomValue(resolvedThemeModeAtom);
+
   const editor = useSongEditorState({ initialText: JSON.stringify(start.data, null, 2) });
-  const pageWidth = getPageSpec(editor.song.page).width;
-  const preview = useSongPreviewScale(pageWidth);
+  const page = getPageSpec(editor.song.page);
+  const preview = useSongPreviewScale(page.width);
   const pdfExport = useSongPdfExport(editor.song);
+  const live = useSongLiveMode();
+
+  const transpose = useSongTranspose({ song: editor.song, onApply: editor.setSong });
 
   const loadPreset = useCallback(
     (id: string) => {
@@ -142,12 +158,31 @@ export function useSongPrintRoute(): SongPrintViewProps {
 
   return {
     toolbar: {
-      columns: getPageSpec(editor.song.page).columns,
-      onColumnsChange: editor.setColumns,
+      isSourceOpen,
+      onToggleSource: () => setIsSourceOpen(!isSourceOpen),
+      columns: page.columns,
+      onColumnsChange: (columns: number) => editor.setPage({ columns }),
       isColumnsDisabled: !!editor.error,
       songs: SONGS,
       selectedPresetId: presetId,
       onSelectPreset: loadPreset,
+      mode: live.mode,
+      onModeChange: live.setMode,
+      tools: {
+        fontSize: page.fontSize,
+        onFontSizeStep: (step: number) =>
+          editor.setPage((current) => ({
+            fontSize: clamp((current.fontSize ?? page.fontSize) + step, SHEET_FONT_MIN, SHEET_FONT_MAX),
+          })),
+        format: editor.song.page?.format ?? "A4",
+        onFormatChange: (format: PageFormat) => editor.setPage({ format }),
+        chordStyle,
+        onChordStyleChange: setChordStyle,
+        onOpenTranspose: transpose.open,
+        isDisabled: !!editor.error,
+      },
+      isDarkTheme: resolvedTheme === "dark",
+      onToggleTheme: () => setThemeMode(resolvedTheme === "dark" ? "light" : "dark"),
       onExportPdf: pdfExport.exportPdf,
       isExporting: pdfExport.isExporting,
     },
@@ -170,9 +205,23 @@ export function useSongPrintRoute(): SongPrintViewProps {
     },
     preview: {
       song: editor.song,
+      chordStyle,
       scale: preview.scale,
       containerRef: preview.containerRef,
     },
+    transpose: transpose.modal,
+    live: {
+      song: editor.song,
+      columns: page.columns,
+      fontSize: live.fontSize,
+      onFontSizeChange: live.setFontSize,
+      isScrolling: live.isScrolling,
+      onToggleScroll: live.toggleScrolling,
+      onExit: () => live.setMode("print"),
+      scrollRef: live.scrollRef,
+    },
+    isLive: live.mode === "live",
+    isSourceOpen,
     editorWidth: preview.editorWidth,
     onSplitterMouseDown: preview.onSplitterMouseDown,
   };

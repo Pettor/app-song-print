@@ -29,10 +29,21 @@ const exampleSong: Song = {
   ],
 };
 
+const defaultArgs = {
+  song: exampleSong,
+  chordStyle: "chip",
+  scale: 1,
+  containerRef: { current: null },
+} satisfies ComponentProps;
+
 export const Default: Story = {
-  args: { song: exampleSong, scale: 1, containerRef: { current: null } } satisfies ComponentProps,
+  args: defaultArgs,
 };
 
 export const ScaledDown: Story = {
-  args: { song: exampleSong, scale: 0.6, containerRef: { current: null } } satisfies ComponentProps,
+  args: { ...defaultArgs, scale: 0.6 },
+};
+
+export const PlainChords: Story = {
+  args: { ...defaultArgs, chordStyle: "plain" },
 };
