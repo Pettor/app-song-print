@@ -19,7 +19,7 @@ This file is the **rules** layer (what you must do); `docs/` is the **reference*
 ### Development
 
 - `pnpm dev` - Start development server (main app at https://localhost:5235)
-- `pnpm storybook` - Start Storybook development server (localhost:9050)
+- `pnpm storybook` - Start Storybook development server (localhost:9058)
 
 ### Build & Deploy
 
@@ -81,9 +81,9 @@ root/
 
 ### `apps/storybook` — Component Documentation
 
-- **URL**: localhost:9050
+- **URL**: localhost:9058
 - **Stack**: Storybook 10 with React/Vite builder, addon-vitest (Playwright/Chromium), addon-a11y, addon-docs, addon-mcp
-- **MCP Server**: Available at `http://localhost:9050/mcp` when Storybook dev server is running (enables AI agents to query component docs and run story tests)
+- **MCP Server**: Available at `http://localhost:9058/mcp` when Storybook dev server is running (enables AI agents to query component docs and run story tests)
 - **Stories**: Pulls from `@app/web` and `@package/ui` node_modules
 
 ## Packages
