@@ -16,6 +16,13 @@ En enda sak är säker
 och det är livets gång;
 ```
 
+## 🚀 Demo
+
+Experience the application in action:
+
+- **[Live Application Demo](https://pettor.github.io/app-song-print/app/)** - See the main application
+- **[Storybook Component Library](https://pettor.github.io/app-song-print/storybook/)** - Explore the component documentation
+
 ## What it does
 
 **Chord-over-lyric layout.** Chords are written inline in the lyric, in brackets, and render as
