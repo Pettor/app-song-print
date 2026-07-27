@@ -1,11 +1,9 @@
 import { useState, useEffect, type ReactElement } from "react";
-import { InformationCircleIcon, SwatchIcon, UserCircleIcon } from "@heroicons/react/20/solid";
+import { InformationCircleIcon, SwatchIcon } from "@heroicons/react/20/solid";
 import { Modal, Separator, Tabs } from "@heroui/react";
 import { useIntl } from "react-intl";
 import type { SettingsAboutSectionProps } from "./SettingsAboutSection";
 import { SettingsAboutSection } from "./SettingsAboutSection";
-import type { SettingsAccountSectionProps } from "./SettingsAccountSection";
-import { SettingsAccountSection } from "./SettingsAccountSection";
 import type { SettingsAppearanceSectionProps } from "./SettingsAppearanceSection";
 import { SettingsAppearanceSection } from "./SettingsAppearanceSection";
 import type { SettingsSection } from "~/core/settings/SettingsSection";
@@ -15,13 +13,11 @@ export interface SettingsModalProps {
   sections: SettingsSection[];
   initialSection?: SettingsSection;
   onClose: () => void;
-  account?: SettingsAccountSectionProps;
   appearance: SettingsAppearanceSectionProps;
   aboutDetails: SettingsAboutSectionProps;
 }
 
 const SECTION_ICONS: Record<SettingsSection, ReactElement> = {
-  account: <UserCircleIcon className="h-4 w-4" />,
   appearance: <SwatchIcon className="h-4 w-4" />,
   about: <InformationCircleIcon className="h-4 w-4" />,
 };
@@ -31,7 +27,6 @@ export function SettingsModal({
   sections,
   initialSection,
   onClose,
-  account,
   appearance,
   aboutDetails,
 }: SettingsModalProps): ReactElement {
@@ -46,12 +41,6 @@ export function SettingsModal({
 
   function getSectionLabel(section: SettingsSection): string {
     switch (section) {
-      case "account":
-        return intl.formatMessage({
-          description: "SettingsModal: tab - account",
-          defaultMessage: "Account",
-          id: "itKwWQ",
-        });
       case "appearance":
         return intl.formatMessage({
           description: "SettingsModal: tab - appearance",
@@ -69,8 +58,6 @@ export function SettingsModal({
 
   function renderSection(section: SettingsSection): ReactElement {
     switch (section) {
-      case "account":
-        return account ? <SettingsAccountSection {...account} /> : <></>;
       case "appearance":
         return <SettingsAppearanceSection {...appearance} />;
       case "about":

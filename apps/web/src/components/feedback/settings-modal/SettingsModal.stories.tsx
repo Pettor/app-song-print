@@ -13,11 +13,6 @@ const meta: Meta<typeof Component> = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const accountArgs = {
-  name: "John Doe",
-  email: "john.doe@example.com",
-};
-
 const aboutArgs = {
   appName: "My App",
   appVersion: "1.0.0",
@@ -31,26 +26,18 @@ const appearanceArgs = {
   },
 };
 
-const allSections = ["account", "appearance", "about"] as Props["sections"];
+const allSections = ["appearance", "about"] as Props["sections"];
 
 const defaultArgs = {
   isOpen: true,
   sections: allSections,
   onClose: () => console.log("onClose"),
-  account: accountArgs,
   appearance: appearanceArgs,
   aboutDetails: aboutArgs,
 } satisfies Props;
 
 export const Default: Story = {
   args: defaultArgs,
-};
-
-export const Account: Story = {
-  args: {
-    ...defaultArgs,
-    initialSection: "account",
-  },
 };
 
 export const Appearance: Story = {
