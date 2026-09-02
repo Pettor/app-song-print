@@ -16,6 +16,10 @@ export interface ResolvedPage {
   fontSize: number;
 }
 
+/** Sheet font sizes the tools menu offers, and the renderer honours. */
+export const SHEET_FONT_MIN = 9;
+export const SHEET_FONT_MAX = 22;
+
 export const PAGE_PAD_X = 48;
 export const PAGE_PAD_TOP = 40;
 export const PAGE_PAD_BOTTOM = 52;

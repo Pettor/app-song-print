@@ -53,29 +53,67 @@
 
 .sp-header {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
-  padding-bottom: 10px;
-  margin-bottom: 16px;
-  border-bottom: 1.5px solid #111;
+  gap: 24px;
+}
+.sp-titles {
+  min-width: 0;
 }
 .sp-title {
   margin: 0;
-  font-size: 21px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+  color: #0f1116;
 }
 .sp-artist {
-  margin-top: 2px;
-  font-size: 13px;
-  color: #555;
+  margin-top: 3px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #6b7080;
 }
+
+/* Key/capo/tempo, one tile each, so they stay readable at arm's length. */
 .sp-meta {
+  display: flex;
   flex: none;
-  font-size: 12px;
-  color: #444;
-  white-space: nowrap;
+  gap: 6px;
+  padding-top: 4px;
+}
+.sp-metachip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 52px;
+  padding: 5px 10px 6px;
+  border: 1px solid #e3e7ee;
+  border-radius: 8px;
+  background: #f1f3f7;
+}
+.sp-metalabel {
+  font-size: 8.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #8a90a0;
+}
+.sp-metavalue {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #16181d;
+}
+
+/* Replaces the old hairline rule: fades out to the right so the eye is pulled
+   into the first section rather than stopped by a full-width line. */
+.sp-rule {
+  height: 2px;
+  margin: 14px 0 18px;
+  border-radius: 2px;
+  background: linear-gradient(to right, var(--accent, #2f6fdd), var(--danger, #d64545) 55%, rgba(0, 0, 0, 0) 100%);
 }
 
 .sp-cols {
@@ -106,13 +144,14 @@
 .sp-secname {
   font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
   font-size: calc(var(--sp-font) * 0.95);
-  font-weight: 600;
-  color: #111;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--accent, #2f6fdd);
 }
 .sp-secnote {
-  font-size: calc(var(--sp-font) * 0.8);
+  font-size: calc(var(--sp-font) * 0.85);
   font-style: italic;
-  color: #777;
+  color: #7b8092;
 }
 
 /* --- chord over lyric --------------------------------------------------- */
@@ -144,16 +183,32 @@
 
 .sp-chord {
   display: inline-block;
-  padding: 1px 5px;
-  border-radius: 3px;
-  margin-right: 6px;
-  background: #ebebeb;
-  color: #111;
+  padding: 1px 6px;
+  border-radius: 5px;
+  margin-right: 8px;
+  background: #eef1f6;
+  color: #1c3a63;
   font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
   font-size: calc(var(--sp-font) * 0.86);
   font-weight: 600;
   line-height: 1.35;
   white-space: nowrap;
+}
+
+/* Chord style variants. Padding is dropped along with the chip so the chord
+   still sits directly over the syllable it belongs to. */
+.sp-doc[data-chord-style="accent"] .sp-chord,
+.sp-doc[data-chord-style="plain"] .sp-chord {
+  padding-left: 0;
+  padding-right: 0;
+  margin-right: 10px;
+  background: none;
+}
+.sp-doc[data-chord-style="accent"] .sp-chord {
+  color: var(--accent, #2f6fdd);
+}
+.sp-doc[data-chord-style="plain"] .sp-chord {
+  color: #111318;
 }
 
 .sp-lyric {
@@ -165,12 +220,26 @@
   margin-top: 2px;
 }
 
+/* Pinned rather than laid out, so what the columns are packed against stays
+   exactly the column height the measurement pass used. */
 .sp-foot {
   position: absolute;
   right: var(--sp-pad-x);
   bottom: 18px;
-  font-size: 11px;
-  color: #999;
+  left: var(--sp-pad-x);
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 10px;
+  border-top: 1px solid #eceef2;
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+  color: #9aa0af;
+}
+.sp-foot span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 @media print {

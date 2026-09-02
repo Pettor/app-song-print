@@ -14,7 +14,7 @@ type Story = StoryObj<typeof meta>;
 
 const exampleSong: Song = {
   title: "Example Song",
-  artist: "",
+  artist: "The Placeholders",
   key: "C",
   capo: 0,
   tempo: 100,
@@ -40,6 +40,14 @@ export const Transposed: Story = {
 
 export const TwoColumns: Story = {
   args: { song: { ...exampleSong, page: { ...exampleSong.page, columns: 2 } } } satisfies ComponentProps,
+};
+
+export const AccentChords: Story = {
+  args: { song: exampleSong, chordStyle: "accent" } satisfies ComponentProps,
+};
+
+export const PlainChords: Story = {
+  args: { song: exampleSong, chordStyle: "plain" } satisfies ComponentProps,
 };
 
 export const Empty: Story = {

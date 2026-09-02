@@ -1,7 +1,7 @@
 import type { KeyboardEvent } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { SongSchema } from "~/core/song-print/SongTypes";
-import type { Song } from "~/core/song-print/SongTypes";
+import type { PageSpec, Song } from "~/core/song-print/SongTypes";
 
 export interface UseSongEditorStateOptions {
   initialText: string;
@@ -13,7 +13,8 @@ export interface UseSongEditorStateResult {
   song: Song;
   error: string | null;
   format: () => void;
-  setColumns: (columns: number) => void;
+  setPage: (patch: Partial<PageSpec> | ((page: PageSpec) => Partial<PageSpec>)) => void;
+  setSong: (song: Song) => void;
   onTabKey: (e: KeyboardEvent<HTMLTextAreaElement>) => void;
 }
 
@@ -67,20 +68,30 @@ export function useSongEditorState({ initialText }: UseSongEditorStateOptions): 
     }
   }, [text]);
 
-  // Toolbar edits write back into the JSON text, keeping it the single source
-  // of truth. Reformats the document as a side effect, same as format().
-  const setColumns = useCallback(
-    (n: number) => {
+  // Toolbar and tool-menu edits write back into the JSON text, keeping it the
+  // single source of truth. Reformats the document as a side effect, same as
+  // format().
+  // The patch may be a function of the page as it stands in the text right
+  // now, not of the debounced `song` — otherwise two quick presses of the same
+  // stepper both compute from the same stale value and one is lost.
+  const setPage = useCallback(
+    (patch: Partial<PageSpec> | ((page: PageSpec) => Partial<PageSpec>)) => {
       try {
         const parsed = JSON.parse(text) as Song;
-        parsed.page = { ...parsed.page, columns: n };
+        const current = parsed.page ?? {};
+        parsed.page = { ...current, ...(typeof patch === "function" ? patch(current) : patch) };
         setText(JSON.stringify(parsed, null, 2));
       } catch {
-        /* invalid JSON — the control is disabled, so this should not happen */
+        /* invalid JSON — the controls are disabled, so this should not happen */
       }
     },
     [text]
   );
+
+  /** Replace the whole document, e.g. after transposing it into a new key. */
+  const replaceSong = useCallback((next: Song) => {
+    setText(JSON.stringify(next, null, 2));
+  }, []);
 
   const onTabKey = useCallback((e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key !== "Tab") return;
@@ -95,5 +106,5 @@ export function useSongEditorState({ initialText }: UseSongEditorStateOptions): 
     });
   }, []);
 
-  return { text, setText, song, error, format, setColumns, onTabKey };
+  return { text, setText, song, error, format, setPage, setSong: replaceSong, onTabKey };
 }

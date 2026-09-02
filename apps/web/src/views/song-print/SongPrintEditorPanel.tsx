@@ -5,7 +5,8 @@ import {
   DocumentArrowDownIcon,
   FolderOpenIcon,
 } from "@heroicons/react/24/outline";
-import { Alert, Button, Link, TextArea, Tooltip } from "@heroui/react";
+import { Button, Link, TextArea, Tooltip } from "@heroui/react";
+import clsx from "clsx";
 import { useIntl } from "react-intl";
 
 export interface SongPrintEditorPanelProps {
@@ -47,23 +48,16 @@ export function SongPrintEditorPanel({
 
   return (
     <div className="border-default-200 bg-content1 flex h-full min-w-0 flex-col border-r">
-      <div className="border-default-200 flex items-center justify-between border-b px-4 py-2.5">
-        <div className="text-xs font-semibold">
+      <div className="border-default-200 flex h-11.5 flex-none items-center justify-between gap-2 border-b px-3.5">
+        <div className="text-default-500 min-w-0 truncate text-xs font-semibold tracking-wider uppercase">
           {intl.formatMessage({
             description: "SongPrintEditorPanel: heading - editor title",
-            defaultMessage: "Song",
-            id: "FawyI+",
-          })}{" "}
-          <span className="text-default-500 font-medium">
-            {fileName ??
-              intl.formatMessage({
-                description: "SongPrintEditorPanel: heading - fallback filename when editing raw JSON",
-                defaultMessage: "JSON",
-                id: "vLCHlD",
-              })}
-          </span>
+            defaultMessage: "Song JSON",
+            id: "wCejB6",
+          })}
+          {fileName && <span className="text-default-400 ml-2 normal-case">{fileName}</span>}
         </div>
-        <div className="flex gap-1.5">
+        <div className="flex flex-none gap-1">
           <Tooltip>
             <Button
               isIconOnly
@@ -166,45 +160,52 @@ export function SongPrintEditorPanel({
         />
       </div>
 
-      <Alert status={error ? "danger" : "success"} className="border-default-200 flex-none border-t px-4 py-2.5">
-        <Alert.Content>
-          <Alert.Description className="text-xs font-medium">
-            {error ? (
-              canImportTab ? (
-                <>
+      <div
+        role="status"
+        className="border-default-200 bg-default-100 flex h-9.5 flex-none items-center gap-2 border-t px-3.5"
+      >
+        <span
+          aria-hidden="true"
+          className={clsx(
+            "size-1.5 flex-none rounded-full ring-3",
+            error ? "bg-danger ring-danger/20" : "bg-success ring-success/20"
+          )}
+        />
+        {/* The parser message is kept on the title: the status line stays short,
+            but the detail is still there for anyone hunting a stray comma. */}
+        <span className="text-default-500 min-w-0 truncate text-xs" title={error ?? undefined}>
+          {error ? (
+            canImportTab ? (
+              <>
+                {intl.formatMessage({
+                  description: "SongPrintEditorPanel: status - pasted text looks like a chord tab",
+                  defaultMessage: "That looks like a chord tab.",
+                  id: "m6IInm",
+                })}{" "}
+                <Link onPress={onImportTab}>
                   {intl.formatMessage({
-                    description: "SongPrintEditorPanel: status - pasted text looks like a chord tab",
-                    defaultMessage: "That looks like a chord tab.",
-                    id: "m6IInm",
-                  })}{" "}
-                  <Link onPress={onImportTab}>
-                    {intl.formatMessage({
-                      description: "SongPrintEditorPanel: action - convert pasted tab to JSON",
-                      defaultMessage: "Convert to JSON",
-                      id: "yDvPRy",
-                    })}
-                  </Link>
-                </>
-              ) : (
-                intl.formatMessage(
-                  {
-                    description: "SongPrintEditorPanel: status - invalid JSON with parser error message",
-                    defaultMessage: "Invalid JSON: {error}",
-                    id: "TrZihd",
-                  },
-                  { error }
-                )
-              )
+                    description: "SongPrintEditorPanel: action - convert pasted tab to JSON",
+                    defaultMessage: "Convert to JSON",
+                    id: "yDvPRy",
+                  })}
+                </Link>
+              </>
             ) : (
               intl.formatMessage({
-                description: "SongPrintEditorPanel: status - valid JSON, preview is current",
-                defaultMessage: "Valid JSON · preview updated",
-                id: "+K2AJ/",
+                description: "SongPrintEditorPanel: status - invalid JSON, the last good preview is kept",
+                defaultMessage: "Invalid JSON · showing last valid preview",
+                id: "DC7GMI",
               })
-            )}
-          </Alert.Description>
-        </Alert.Content>
-      </Alert>
+            )
+          ) : (
+            intl.formatMessage({
+              description: "SongPrintEditorPanel: status - valid JSON, preview is current",
+              defaultMessage: "Valid JSON · preview updated",
+              id: "+K2AJ/",
+            })
+          )}
+        </span>
+      </div>
     </div>
   );
 }

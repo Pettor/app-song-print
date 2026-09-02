@@ -1,7 +1,10 @@
 import type { CSSProperties, ReactElement } from "react";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useIntl } from "react-intl";
 import "./SongDoc.css";
 import { ChordLine, ChordRow } from "./ChordLine";
+import type { ChordStyle } from "~/core/song-print/ChordStyle";
+import { DEFAULT_CHORD_STYLE } from "~/core/song-print/ChordStyle";
 import {
   COLUMN_GUTTER,
   PAGE_PAD_BOTTOM,
@@ -82,35 +85,129 @@ function SectionBody({ s, from, to }: SectionBodyProps): ReactElement {
   );
 }
 
+interface MetaChip {
+  label: string;
+  value: string;
+}
+
 interface SongHeaderProps {
   song: Song;
   semitones: number;
 }
 
-function SongHeader({ song, semitones }: SongHeaderProps): ReactElement | null {
-  const meta: string[] = [];
-  if (song.key) {
-    const shifted = semitones ? transposeChord(song.key, semitones) : song.key;
-    meta.push(semitones && shifted !== song.key ? `Key ${song.key} → ${shifted}` : `Key ${shifted}`);
-  }
-  if (song.capo) meta.push(`Capo ${song.capo}`);
-  if (song.tempo) meta.push(`${song.tempo} bpm`);
+/** Placeholder for a value the song does not carry. */
+const NO_VALUE = "—";
 
-  if (!song.title && !song.artist && meta.length === 0) return null;
+function SongHeader({ song, semitones }: SongHeaderProps): ReactElement | null {
+  const intl = useIntl();
+
+  const shifted = song.key && semitones ? transposeChord(song.key, semitones) : song.key;
+  const hasMeta = !!(song.key ?? song.capo ?? song.tempo);
+
+  // The three chips travel together: a player scanning the top of the sheet
+  // reads them in the same place every time, dash or no dash.
+  const chips: MetaChip[] = [
+    {
+      label: intl.formatMessage({
+        description: "SongDoc: sheet meta chip label - musical key",
+        defaultMessage: "Key",
+        id: "kEhm3r",
+      }),
+      // A pending offset shows both keys, so the sheet says what it is played in.
+      value: !song.key ? NO_VALUE : semitones && shifted !== song.key ? `${song.key} → ${shifted}` : (shifted ?? ""),
+    },
+    {
+      label: intl.formatMessage({
+        description: "SongDoc: sheet meta chip label - capo fret",
+        defaultMessage: "Capo",
+        id: "QINXS3",
+      }),
+      value: song.capo ? String(song.capo) : NO_VALUE,
+    },
+    {
+      label: intl.formatMessage({
+        description: "SongDoc: sheet meta chip label - tempo in beats per minute",
+        defaultMessage: "Tempo",
+        id: "ZaRIHg",
+      }),
+      value: song.tempo ? String(song.tempo) : NO_VALUE,
+    },
+  ];
+
+  if (!song.title && !song.artist && !hasMeta) return null;
 
   return (
-    <div className="sp-header">
-      <div className="sp-titles">
-        {song.title && <h1 className="sp-title">{song.title}</h1>}
-        {song.artist && <div className="sp-artist">{song.artist}</div>}
+    <>
+      <div className="sp-header">
+        <div className="sp-titles">
+          {song.title && <h1 className="sp-title">{song.title}</h1>}
+          {song.artist && <div className="sp-artist">{song.artist}</div>}
+        </div>
+        {hasMeta && (
+          <div className="sp-meta">
+            {chips.map((chip) => (
+              <div className="sp-metachip" key={chip.label}>
+                <span className="sp-metalabel">{chip.label}</span>
+                <span className="sp-metavalue">{chip.value}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-      {meta.length > 0 && <div className="sp-meta">{meta.join(" · ")}</div>}
+      <div className="sp-rule" />
+    </>
+  );
+}
+
+interface SongFootProps {
+  song: Song;
+  semitones: number;
+  page: number;
+  total: number;
+}
+
+function SongFoot({ song, semitones, page, total }: SongFootProps): ReactElement {
+  const intl = useIntl();
+
+  const key = song.key ? (semitones ? transposeChord(song.key, semitones) : song.key) : "";
+  const parts = [song.title, song.artist].filter(Boolean);
+  if (key) {
+    parts.push(
+      intl.formatMessage(
+        {
+          description: "SongDoc: sheet footer - musical key",
+          defaultMessage: "Key {key}",
+          id: "F5P5Jj",
+        },
+        { key }
+      )
+    );
+  }
+
+  return (
+    <div className="sp-foot">
+      <span>{parts.join(" · ")}</span>
+      <span>
+        {intl.formatMessage(
+          {
+            description: "SongDoc: sheet footer - page number and print date",
+            defaultMessage: "Page {page} of {total} · {date}",
+            id: "S+3a30",
+          },
+          {
+            page,
+            total,
+            date: intl.formatDate(Date.now(), { day: "2-digit", month: "short", year: "numeric" }),
+          }
+        )}
+      </span>
     </div>
   );
 }
 
 export interface SongDocProps {
   song: Song;
+  chordStyle?: ChordStyle;
 }
 
 /**
@@ -118,7 +215,7 @@ export interface SongDocProps {
  * paginate, then draws the resulting pages. See SongDoc.css for the pixel
  * contract this measurement pass depends on.
  */
-export function SongDoc({ song }: SongDocProps): ReactElement {
+export function SongDoc({ song, chordStyle = DEFAULT_CHORD_STYLE }: SongDocProps): ReactElement {
   const page = getPageSpec(song.page);
   const semitones = Math.round(song.transpose ?? 0);
   const sections = useMemo(() => prepare(song.sections ?? [], semitones), [song.sections, semitones]);
@@ -130,7 +227,9 @@ export function SongDoc({ song }: SongDocProps): ReactElement {
   const headRef = useRef<HTMLDivElement>(null);
   const [layout, setLayout] = useState<{ sig: string; pages: number[][][]; units: Unit[] } | null>(null);
 
-  const sig = JSON.stringify({ song, colW, colH });
+  // Chord style is part of the signature: dropping the chip padding changes
+  // segment widths, and so how many lines a section wraps to.
+  const sig = JSON.stringify({ song, colW, colH, chordStyle });
 
   useLayoutEffect(() => {
     const root = measRef.current;
@@ -272,7 +371,7 @@ export function SongDoc({ song }: SongDocProps): ReactElement {
   const total = pages.length;
 
   return (
-    <div className="sp-doc" style={docStyle}>
+    <div className="sp-doc" style={docStyle} data-chord-style={chordStyle}>
       {measurer}
       {pages.map((cols, pi) => (
         <div className="sp-page" key={pi}>
@@ -287,11 +386,7 @@ export function SongDoc({ song }: SongDocProps): ReactElement {
               </div>
             ))}
           </div>
-          {total > 1 && (
-            <div className="sp-foot">
-              {pi + 1} / {total}
-            </div>
-          )}
+          <SongFoot song={song} semitones={semitones} page={pi + 1} total={total} />
         </div>
       ))}
     </div>
