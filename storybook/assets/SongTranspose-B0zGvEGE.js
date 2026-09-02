@@ -1,0 +1,1 @@
+import{i as e}from"./preload-helper-CT_b8DTk.js";import{n as t,t as n}from"./TransposeChord-CSKBaZSO.js";function r(e){let n=Math.round(e.transpose??0),r=e.key??`C`;return n===0?r:t(r,n)}var i,a,o=e((()=>{n(),i=[`C`,`C#`,`D`,`D#`,`E`,`F`,`F#`,`G`,`G#`,`A`,`A#`,`B`],a=i}));export{r as n,o as r,a as t};
