@@ -8,7 +8,7 @@ import { useSongPreviewScale } from "./-UseSongPreviewScale";
 import { useSongTranspose } from "./-UseSongTranspose";
 import { lastPresetIdAtom } from "~/core/song-print/LastPresetAtoms";
 import { SHEET_FONT_MAX, SHEET_FONT_MIN, getPageSpec } from "~/core/song-print/PageFormats";
-import { chordStyleAtom, sourceOpenAtom } from "~/core/song-print/SheetPrefsAtoms";
+import { chordStyleAtom, keyBasisAtom, sourceOpenAtom } from "~/core/song-print/SheetPrefsAtoms";
 import { downloadSong, openSongFile, savePreset, toFilename, writeSongFile } from "~/core/song-print/SongFileIo";
 import { SONGS, SONGS_SOURCE } from "~/core/song-print/SongLibrary";
 import type { PageFormat, Preset } from "~/core/song-print/SongTypes";
@@ -39,6 +39,7 @@ export function useSongPrintRoute(): SongPrintViewProps {
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const [chordStyle, setChordStyle] = useAtom(chordStyleAtom);
+  const [keyBasis, setKeyBasis] = useAtom(keyBasisAtom);
   const [isSourceOpen, setIsSourceOpen] = useAtom(sourceOpenAtom);
   const [, setThemeMode] = useAtom(themeModeAtom);
   const resolvedTheme = useAtomValue(resolvedThemeModeAtom);
@@ -163,6 +164,9 @@ export function useSongPrintRoute(): SongPrintViewProps {
       columns: page.columns,
       onColumnsChange: (columns: number) => editor.setPage({ columns }),
       isColumnsDisabled: !!editor.error,
+      keyBasis,
+      onKeyBasisChange: setKeyBasis,
+      isTransposed: Math.round(editor.song.transpose ?? 0) !== 0,
       songs: SONGS,
       selectedPresetId: presetId,
       onSelectPreset: loadPreset,
@@ -206,6 +210,7 @@ export function useSongPrintRoute(): SongPrintViewProps {
     preview: {
       song: editor.song,
       chordStyle,
+      keyBasis,
       scale: preview.scale,
       containerRef: preview.containerRef,
     },
@@ -219,6 +224,7 @@ export function useSongPrintRoute(): SongPrintViewProps {
       onToggleScroll: live.toggleScrolling,
       onExit: () => live.setMode("print"),
       scrollRef: live.scrollRef,
+      keyBasis,
     },
     isLive: live.mode === "live",
     isSourceOpen,

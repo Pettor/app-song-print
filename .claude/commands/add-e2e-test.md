@@ -62,6 +62,7 @@ When the feature under test requires a new API endpoint, you must update multipl
 Create a new folder `packages/api/src/Api/<EndpointName>/` with these files:
 
 **Classes.ts** - Domain types and query keys:
+
 ```typescript
 export const QUERY_KEY_<NAME> = ["<name>"] as const;
 
@@ -71,6 +72,7 @@ export interface <EndpointName> {
 ```
 
 **Schema.ts** - Zod validation schema for the DTO:
+
 ```typescript
 import { z } from "zod";
 
@@ -82,6 +84,7 @@ export type <EndpointName>Dto = z.infer<typeof <endpointName>Schema>;
 ```
 
 **Convert.ts** - DTO to domain type converter:
+
 ```typescript
 import type { <EndpointName> } from "./Classes";
 import type { <EndpointName>Dto } from "./Schema";
@@ -94,6 +97,7 @@ export function <endpointName>ConvertFromDto(dto: <EndpointName>Dto): <EndpointN
 ```
 
 **Post.ts / Get.ts** - Service function and React Query hook:
+
 ```typescript
 import type { UseMutationResult } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";

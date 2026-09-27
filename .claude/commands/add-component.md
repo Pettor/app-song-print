@@ -85,7 +85,7 @@ intl.formatMessage({
   description: "ComponentName - What this string is for",
   defaultMessage: "The English text",
   id: "uniqueId",
-})
+});
 ```
 
 This applies to: labels, placeholders, button text, headings, error messages, tooltips, aria-labels, validation messages.

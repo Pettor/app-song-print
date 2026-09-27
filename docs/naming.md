@@ -4,31 +4,31 @@ These conventions are enforced by ESLint, Prettier, and the TanStack Router file
 
 ## Files and folders
 
-| Kind | Convention | Example |
-| --- | --- | --- |
-| Component file | `PascalCase.tsx` | `LoginView.tsx`, `CommandPalette.tsx` |
-| Component folder | `kebab-case` | `command-palette/`, `input-field/` |
-| Hook file | `UsePascalCase.ts(x)` | `UseAuth.ts`, `UseLoginRoute.ts` |
-| Hook export | `camelCase` | `useAuth`, `useLoginRoute` |
-| Jotai atom file | `PascalCaseAtoms.ts` | `ThemeAtoms.ts`, `AuthAtoms.ts` |
-| Jotai atom export | `camelCase + Atom` | `themeModeAtom`, `authStateAtom` |
-| Domain type file | `PascalCase.ts` | `AuthState.ts`, `ThemeMode.ts` |
-| Props interface | `PascalCaseProps` | `NavbarProps`, `LoginFormProps` |
-| Storybook story | co-located `.stories.tsx` | `Logo.stories.tsx` |
-| Unit test | co-located `.test.ts(x)` | `Schema.test.ts`, `Convert.test.ts` |
+| Kind              | Convention                | Example                               |
+| ----------------- | ------------------------- | ------------------------------------- |
+| Component file    | `PascalCase.tsx`          | `LoginView.tsx`, `CommandPalette.tsx` |
+| Component folder  | `kebab-case`              | `command-palette/`, `input-field/`    |
+| Hook file         | `UsePascalCase.ts(x)`     | `UseAuth.ts`, `UseLoginRoute.ts`      |
+| Hook export       | `camelCase`               | `useAuth`, `useLoginRoute`            |
+| Jotai atom file   | `PascalCaseAtoms.ts`      | `ThemeAtoms.ts`, `AuthAtoms.ts`       |
+| Jotai atom export | `camelCase + Atom`        | `themeModeAtom`, `authStateAtom`      |
+| Domain type file  | `PascalCase.ts`           | `AuthState.ts`, `ThemeMode.ts`        |
+| Props interface   | `PascalCaseProps`         | `NavbarProps`, `LoginFormProps`       |
+| Storybook story   | co-located `.stories.tsx` | `Logo.stories.tsx`                    |
+| Unit test         | co-located `.test.ts(x)`  | `Schema.test.ts`, `Convert.test.ts`   |
 
 ## Route-specific naming
 
 TanStack's file-based router treats filenames as meaningful:
 
-| Pattern | Meaning |
-| --- | --- |
-| `route.tsx` | The route file — exports `Route = createFileRoute(...)({ ... })` |
-| `_folder/` | Layout segment — wraps child routes, does not add a URL segment |
-| `$/` | Splat (catch-all) route |
-| `$param/` | URL parameter segment |
-| `-UseXxxRoute.ts` | Private hook (prefix `-` = ignored by router) |
-| `-XxxLoader.ts` | Private loader (prefix `-` = ignored by router) |
+| Pattern           | Meaning                                                          |
+| ----------------- | ---------------------------------------------------------------- |
+| `route.tsx`       | The route file — exports `Route = createFileRoute(...)({ ... })` |
+| `_folder/`        | Layout segment — wraps child routes, does not add a URL segment  |
+| `$/`              | Splat (catch-all) route                                          |
+| `$param/`         | URL parameter segment                                            |
+| `-UseXxxRoute.ts` | Private hook (prefix `-` = ignored by router)                    |
+| `-XxxLoader.ts`   | Private loader (prefix `-` = ignored by router)                  |
 
 **Route hook naming:** `-Use<RouteName>Route.ts` exporting `use<RouteName>Route()`.
 
@@ -36,28 +36,28 @@ TanStack's file-based router treats filenames as meaningful:
 
 See [patterns.md#controller-pattern](./patterns.md#controller-pattern). Three files:
 
-| File | Convention |
-| --- | --- |
-| Presentational | `<ComponentName>.tsx` |
-| Hook | `Use<ComponentName>Controller.ts(x)` exporting `use<ComponentName>Controller` |
-| Wrapper | `<ComponentName>Controller.tsx` exporting `<ComponentName>Controller` |
+| File           | Convention                                                                    |
+| -------------- | ----------------------------------------------------------------------------- |
+| Presentational | `<ComponentName>.tsx`                                                         |
+| Hook           | `Use<ComponentName>Controller.ts(x)` exporting `use<ComponentName>Controller` |
+| Wrapper        | `<ComponentName>Controller.tsx` exporting `<ComponentName>Controller`         |
 
 ## Story titles
 
 Story titles use the pattern `Top-Level / Category / Component Name`. Every token is **Title Case with spaces**, and the hierarchy should match the mental model of a developer browsing Storybook — not the file path.
 
-| Top-level | Used for |
-| --- | --- |
-| `Actions/` | `components/actions/*` — action surfaces (command palette, theme selector) |
-| `Display/` | `components/display/*` — presentation-only UI |
-| `Feedback/` | `components/feedback/*` — dialogs, toasts, modals, PWA prompts |
-| `Forms/` | `components/forms/*` — full-flow forms |
-| `Input/` | `components/input/*` — reusable inputs |
-| `Navigation/` | `components/navigation/*` — in-app navigation |
-| `Views/` | `views/*` — page-level compositions |
-| `Core/` | app shell / router-level UI (loading, error) |
-| `Shared/` | `packages/ui` — cross-app shared UI |
-| `Design System/` | foundation tokens (colors, typography) |
+| Top-level        | Used for                                                                   |
+| ---------------- | -------------------------------------------------------------------------- |
+| `Actions/`       | `components/actions/*` — action surfaces (command palette, theme selector) |
+| `Display/`       | `components/display/*` — presentation-only UI                              |
+| `Feedback/`      | `components/feedback/*` — dialogs, toasts, modals, PWA prompts             |
+| `Forms/`         | `components/forms/*` — full-flow forms                                     |
+| `Input/`         | `components/input/*` — reusable inputs                                     |
+| `Navigation/`    | `components/navigation/*` — in-app navigation                              |
+| `Views/`         | `views/*` — page-level compositions                                        |
+| `Core/`          | app shell / router-level UI (loading, error)                               |
+| `Shared/`        | `packages/ui` — cross-app shared UI                                        |
+| `Design System/` | foundation tokens (colors, typography)                                     |
 
 Examples:
 

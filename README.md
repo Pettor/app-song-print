@@ -41,7 +41,9 @@ cannot fit a column on its own — and then the continuation is labelled `cont.`
 portrait or landscape, in one, two or three columns.
 
 **Transposition.** Shift the whole song by a number of semitones before printing. Slash chords
-transpose both halves; markers like `N.C.` are left alone.
+transpose both halves; markers like `N.C.` are left alone. A transposed sheet can also be printed
+in its original key, for a player transposing by hand — see
+[Printing the original key](#printing-the-original-key).
 
 **Export.** One click to a paginated PDF at the song's page format, via `html2canvas` + `jsPDF`.
 
@@ -105,8 +107,8 @@ also watches the directory and reloads when a file there changes.
 | Field                  | Notes                                                                                                    |
 | ---------------------- | -------------------------------------------------------------------------------------------------------- |
 | `title`, `artist`      | Printed in the header on page one                                                                        |
-| `key`, `capo`, `tempo` | Optional; shown as compact metadata. With a transpose applied, the key prints as `Dm → Em`               |
-| `transpose`            | Semitones. Negative shifts down                                                                          |
+| `key`, `capo`, `tempo` | Optional; shown as compact metadata                                                                      |
+| `transpose`            | Semitones. Negative shifts down. See [Printing the original key](#printing-the-original-key)             |
 | `page.format`          | `A4`, `A5` or `Letter`                                                                                   |
 | `page.orientation`     | `portrait` or `landscape`                                                                                |
 | `page.columns`         | `1`, `2` or `3`. More columns fit more on a sheet, at a narrower measure — watch for long lines wrapping |
@@ -119,6 +121,24 @@ also watches the directory and reloads when a file there changes.
 A chord attaches to the text **after** it. Write `[[` for a literal `[`. Every field except
 `sections` is optional — the preview re-renders on every keystroke, so half-typed JSON has to
 render rather than crash.
+
+### Printing the original key
+
+A song with a non-zero `transpose` is shifted on its way to the page, and the header prints the one
+key it ends up in. A **Key** toggle then appears in the top bar, because there is a second sheet
+worth printing: the same song left in its written key, for a player who transposes by hand — on a
+capo or a transposing instrument — while the rest of the band reads the transposed one.
+
+|                    | **Transposed** (default) | **Original** |
+| ------------------ | ------------------------ | ------------ |
+| Chords on the page | shifted by `transpose`   | as written   |
+| Key chip           | `Em`                     | `Dm → Em`    |
+| Transpose chip     | —                        | `+2`         |
+
+The choice applies to the preview, the PDF and live mode alike, and is remembered per device. It
+is a printing preference, so it never touches the JSON. Tools → **Transpose sheet** is the other
+thing entirely: it rewrites the chords into the new key and saves them, leaving no offset — and so
+no toggle.
 
 ## Stack
 

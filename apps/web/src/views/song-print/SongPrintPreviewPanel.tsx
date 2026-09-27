@@ -2,11 +2,13 @@ import type { CSSProperties, ReactElement, RefObject } from "react";
 import { useIntl } from "react-intl";
 import { SongDoc } from "~/components/display/song-doc/SongDoc";
 import type { ChordStyle } from "~/core/song-print/ChordStyle";
+import type { KeyBasis } from "~/core/song-print/KeyBasis";
 import type { Song } from "~/core/song-print/SongTypes";
 
 export interface SongPrintPreviewPanelProps {
   song: Song;
   chordStyle: ChordStyle;
+  keyBasis: KeyBasis;
   scale: number;
   containerRef: RefObject<HTMLDivElement | null>;
 }
@@ -14,6 +16,7 @@ export interface SongPrintPreviewPanelProps {
 export function SongPrintPreviewPanel({
   song,
   chordStyle,
+  keyBasis,
   scale,
   containerRef,
 }: SongPrintPreviewPanelProps): ReactElement {
@@ -33,7 +36,7 @@ export function SongPrintPreviewPanel({
     >
       <div className="px-10 py-9 pb-16">
         <div className="sp-scalewrap" style={{ zoom: scale } as CSSProperties}>
-          <SongDoc song={song} chordStyle={chordStyle} />
+          <SongDoc song={song} chordStyle={chordStyle} keyBasis={keyBasis} />
         </div>
       </div>
     </div>

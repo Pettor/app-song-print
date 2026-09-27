@@ -25,6 +25,9 @@ const defaultArgs = {
   columns: 1,
   onColumnsChange: fn(),
   isColumnsDisabled: false,
+  keyBasis: "transposed",
+  onKeyBasisChange: fn(),
+  isTransposed: false,
   songs,
   selectedPresetId: "example",
   onSelectPreset: fn(),
@@ -74,6 +77,14 @@ export const OpenedFromFile: Story = {
   args: { ...defaultArgs, selectedPresetId: "" },
 };
 
+export const Transposed: Story = {
+  args: { ...defaultArgs, isTransposed: true },
+};
+
+export const OriginalKeySelected: Story = {
+  args: { ...defaultArgs, isTransposed: true, keyBasis: "original" },
+};
+
 export const SelectingColumns: Story = {
   args: defaultArgs,
   play: async ({ canvasElement, args }) => {
@@ -95,5 +106,26 @@ export const OpeningTools: Story = {
     // The popover renders in a portal, so it is looked up on the document, and
     // it fades in — hence waiting for it to actually be on screen.
     await waitFor(() => expect(within(document.body).getByText("Transpose sheet")).toBeVisible());
+  },
+};
+
+export const ChoosingTheOriginalKey: Story = {
+  args: { ...defaultArgs, isTransposed: true },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+
+    await userEvent.click(canvas.getByRole("radio", { name: "Original" }));
+
+    await expect(args.onKeyBasisChange).toHaveBeenCalledWith("original");
+  },
+};
+
+export const KeyBasisHiddenWithoutAnOffset: Story = {
+  args: defaultArgs,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    // Nothing to choose between until the song carries a transpose offset.
+    await expect(canvas.queryByRole("radiogroup", { name: "Printed key" })).toBeNull();
   },
 };

@@ -32,6 +32,7 @@ const exampleSong: Song = {
 const defaultArgs = {
   song: exampleSong,
   chordStyle: "chip",
+  keyBasis: "transposed",
   scale: 1,
   containerRef: { current: null },
 } satisfies ComponentProps;
@@ -46,4 +47,8 @@ export const ScaledDown: Story = {
 
 export const PlainChords: Story = {
   args: { ...defaultArgs, chordStyle: "plain" },
+};
+
+export const OriginalKey: Story = {
+  args: { ...defaultArgs, song: { ...exampleSong, transpose: 2 }, keyBasis: "original" },
 };

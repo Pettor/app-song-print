@@ -54,3 +54,8 @@ export const TwoColumns: Story = {
 export const Transposed: Story = {
   args: { ...defaultArgs, song: { ...exampleSong, transpose: 2 } },
 };
+
+/** The offset is in effect, but the stage keeps the chords in the written key. */
+export const OriginalKey: Story = {
+  args: { ...defaultArgs, song: { ...exampleSong, transpose: 2 }, keyBasis: "original" },
+};

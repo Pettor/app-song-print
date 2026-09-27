@@ -5,6 +5,8 @@ import "./SongDoc.css";
 import { ChordLine, ChordRow } from "./ChordLine";
 import type { ChordStyle } from "~/core/song-print/ChordStyle";
 import { DEFAULT_CHORD_STYLE } from "~/core/song-print/ChordStyle";
+import type { KeyBasis } from "~/core/song-print/KeyBasis";
+import { DEFAULT_KEY_BASIS } from "~/core/song-print/KeyBasis";
 import {
   COLUMN_GUTTER,
   PAGE_PAD_BOTTOM,
@@ -17,6 +19,8 @@ import {
 } from "~/core/song-print/PageFormats";
 import { buildColumns, chunkPages } from "~/core/song-print/Paginate";
 import { parseLine } from "~/core/song-print/ParseLine";
+import type { TransposeView } from "~/core/song-print/SongTranspose";
+import { transposeView } from "~/core/song-print/SongTranspose";
 import type { Section, Segment, Song } from "~/core/song-print/SongTypes";
 import { transposeChord } from "~/core/song-print/TransposeChord";
 
@@ -92,17 +96,18 @@ interface MetaChip {
 
 interface SongHeaderProps {
   song: Song;
-  semitones: number;
+  view: TransposeView;
 }
 
 /** Placeholder for a value the song does not carry. */
 const NO_VALUE = "—";
 
-function SongHeader({ song, semitones }: SongHeaderProps): ReactElement | null {
+function SongHeader({ song, view }: SongHeaderProps): ReactElement | null {
   const intl = useIntl();
 
-  const shifted = song.key && semitones ? transposeChord(song.key, semitones) : song.key;
-  const hasMeta = !!(song.key ?? song.capo ?? song.tempo);
+  // Printing the original key means the sheet has to say both where it is
+  // written and where the band is, so it gains a chip either way.
+  const hasMeta = !!(song.key ?? song.capo ?? song.tempo) || view.isOriginal;
 
   // The three chips travel together: a player scanning the top of the sheet
   // reads them in the same place every time, dash or no dash.
@@ -113,8 +118,13 @@ function SongHeader({ song, semitones }: SongHeaderProps): ReactElement | null {
         defaultMessage: "Key",
         id: "kEhm3r",
       }),
-      // Only the key being played, transposed or not — the sheet is read, not diffed.
-      value: song.key ? (shifted ?? "") : NO_VALUE,
+      // Only the key being played — the sheet is read, not diffed — unless the
+      // chords stayed in the original key, where the pair is the whole point.
+      value: !view.writtenKey
+        ? NO_VALUE
+        : view.isOriginal
+          ? `${view.writtenKey} → ${view.soundingKey}`
+          : view.writtenKey,
     },
     {
       label: intl.formatMessage({
@@ -133,6 +143,17 @@ function SongHeader({ song, semitones }: SongHeaderProps): ReactElement | null {
       value: song.tempo ? String(song.tempo) : NO_VALUE,
     },
   ];
+
+  if (view.isOriginal) {
+    chips.push({
+      label: intl.formatMessage({
+        description: "SongDoc: sheet meta chip label - semitones to transpose by while playing",
+        defaultMessage: "Transpose",
+        id: "z8+3KF",
+      }),
+      value: view.offset > 0 ? `+${view.offset}` : String(view.offset),
+    });
+  }
 
   if (!song.title && !song.artist && !hasMeta) return null;
 
@@ -161,15 +182,15 @@ function SongHeader({ song, semitones }: SongHeaderProps): ReactElement | null {
 
 interface SongFootProps {
   song: Song;
-  semitones: number;
+  view: TransposeView;
   page: number;
   total: number;
 }
 
-function SongFoot({ song, semitones, page, total }: SongFootProps): ReactElement {
+function SongFoot({ song, view, page, total }: SongFootProps): ReactElement {
   const intl = useIntl();
 
-  const key = song.key ? (semitones ? transposeChord(song.key, semitones) : song.key) : "";
+  const key = view.isOriginal ? `${view.writtenKey} → ${view.soundingKey}` : view.writtenKey;
   const parts = [song.title, song.artist].filter(Boolean);
   if (key) {
     parts.push(
@@ -208,6 +229,8 @@ function SongFoot({ song, semitones, page, total }: SongFootProps): ReactElement
 export interface SongDocProps {
   song: Song;
   chordStyle?: ChordStyle;
+  /** Which key the chords are written in when the song carries a transpose offset. */
+  keyBasis?: KeyBasis;
 }
 
 /**
@@ -215,10 +238,14 @@ export interface SongDocProps {
  * paginate, then draws the resulting pages. See SongDoc.css for the pixel
  * contract this measurement pass depends on.
  */
-export function SongDoc({ song, chordStyle = DEFAULT_CHORD_STYLE }: SongDocProps): ReactElement {
+export function SongDoc({
+  song,
+  chordStyle = DEFAULT_CHORD_STYLE,
+  keyBasis = DEFAULT_KEY_BASIS,
+}: SongDocProps): ReactElement {
   const page = getPageSpec(song.page);
-  const semitones = Math.round(song.transpose ?? 0);
-  const sections = useMemo(() => prepare(song.sections ?? [], semitones), [song.sections, semitones]);
+  const view = transposeView(song, keyBasis);
+  const sections = useMemo(() => prepare(song.sections ?? [], view.shift), [song.sections, view.shift]);
 
   const colW = columnWidth(page);
   const colH = columnHeight(page);
@@ -228,8 +255,9 @@ export function SongDoc({ song, chordStyle = DEFAULT_CHORD_STYLE }: SongDocProps
   const [layout, setLayout] = useState<{ sig: string; pages: number[][][]; units: Unit[] } | null>(null);
 
   // Chord style is part of the signature: dropping the chip padding changes
-  // segment widths, and so how many lines a section wraps to.
-  const sig = JSON.stringify({ song, colW, colH, chordStyle });
+  // segment widths, and so how many lines a section wraps to. So is the key
+  // basis — it rewrites every chord and adds a header chip.
+  const sig = JSON.stringify({ song, colW, colH, chordStyle, keyBasis });
 
   useLayoutEffect(() => {
     const root = measRef.current;
@@ -342,7 +370,7 @@ export function SongDoc({ song, chordStyle = DEFAULT_CHORD_STYLE }: SongDocProps
   const measurer = (
     <div className="sp-measure" ref={measRef} style={{ width: colW + "px" }}>
       <div ref={headRef}>
-        <SongHeader song={song} semitones={semitones} />
+        <SongHeader song={song} view={view} />
       </div>
       {sections.map((s, i) => (
         <div className="sp-section" data-sec={i} key={i}>
@@ -375,7 +403,7 @@ export function SongDoc({ song, chordStyle = DEFAULT_CHORD_STYLE }: SongDocProps
       {measurer}
       {pages.map((cols, pi) => (
         <div className="sp-page" key={pi}>
-          {pi === 0 && <SongHeader song={song} semitones={semitones} />}
+          {pi === 0 && <SongHeader song={song} view={view} />}
           <div className="sp-cols" data-columns={page.columns}>
             {cols.map((colUnits, ci) => (
               <div className="sp-col" key={ci}>
@@ -386,7 +414,7 @@ export function SongDoc({ song, chordStyle = DEFAULT_CHORD_STYLE }: SongDocProps
               </div>
             ))}
           </div>
-          <SongFoot song={song} semitones={semitones} page={pi + 1} total={total} />
+          <SongFoot song={song} view={view} page={pi + 1} total={total} />
         </div>
       ))}
     </div>

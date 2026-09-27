@@ -39,6 +39,7 @@ const defaultArgs = {
   onToggleScroll: fn(),
   onExit: fn(),
   scrollRef: { current: null },
+  keyBasis: "transposed",
 } satisfies ComponentProps;
 
 export const Default: Story = {
@@ -51,6 +52,15 @@ export const Scrolling: Story = {
 
 export const TwoColumns: Story = {
   args: { ...defaultArgs, columns: 2, fontSize: 22 },
+};
+
+export const Transposed: Story = {
+  args: { ...defaultArgs, song: { ...exampleSong, transpose: 2 } },
+};
+
+/** Playing the original key while the band reads the transposed sheet. */
+export const OriginalKey: Story = {
+  args: { ...defaultArgs, song: { ...exampleSong, transpose: 2 }, keyBasis: "original" },
 };
 
 export const Exiting: Story = {

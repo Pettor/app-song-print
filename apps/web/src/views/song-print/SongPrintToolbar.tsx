@@ -23,6 +23,7 @@ import { useIntl } from "react-intl";
 import { SongPrintToolsMenu } from "./SongPrintToolsMenu";
 import type { SongPrintToolsMenuProps } from "./SongPrintToolsMenu";
 import { BrandMark } from "~/components/display/brand-mark/BrandMark";
+import type { KeyBasis } from "~/core/song-print/KeyBasis";
 import type { SheetMode } from "~/core/song-print/SheetMode";
 import type { Preset } from "~/core/song-print/SongTypes";
 
@@ -32,6 +33,10 @@ export interface SongPrintToolbarProps {
   columns: number;
   onColumnsChange: (columns: number) => void;
   isColumnsDisabled: boolean;
+  keyBasis: KeyBasis;
+  onKeyBasisChange: (keyBasis: KeyBasis) => void;
+  /** Only a song carrying a live transpose offset has two keys to choose between. */
+  isTransposed: boolean;
   songs: Preset[];
   selectedPresetId: string;
   onSelectPreset: (id: string) => void;
@@ -50,6 +55,9 @@ export function SongPrintToolbar({
   columns,
   onColumnsChange,
   isColumnsDisabled,
+  keyBasis,
+  onKeyBasisChange,
+  isTransposed,
   songs,
   selectedPresetId,
   onSelectPreset,
@@ -173,6 +181,49 @@ export function SongPrintToolbar({
           ))}
         </ToggleButtonGroup>
       </div>
+
+      {/* Nothing to choose about until the song carries an offset. */}
+      {isTransposed && (
+        <div className="flex flex-none items-center gap-2">
+          <span className="text-default-500 text-[11px] font-medium tracking-wider uppercase">
+            {intl.formatMessage({
+              description: "SongPrintToolbar: label - printed key group",
+              defaultMessage: "Key",
+              id: "F+JtCB",
+            })}
+          </span>
+          <ToggleButtonGroup
+            size="sm"
+            selectionMode="single"
+            disallowEmptySelection
+            selectedKeys={[keyBasis]}
+            onSelectionChange={(keys) => {
+              const next = [...keys][0];
+              if (next) onKeyBasisChange(next as KeyBasis);
+            }}
+            aria-label={intl.formatMessage({
+              description: "SongPrintToolbar: aria-label - printed key group",
+              defaultMessage: "Printed key",
+              id: "ZYaUH5",
+            })}
+          >
+            <ToggleButton id="transposed">
+              {intl.formatMessage({
+                description: "SongPrintToolbar: option - print the transposed key",
+                defaultMessage: "Transposed",
+                id: "meUKsq",
+              })}
+            </ToggleButton>
+            <ToggleButton id="original">
+              {intl.formatMessage({
+                description: "SongPrintToolbar: option - print the original key with the offset noted",
+                defaultMessage: "Original",
+                id: "aCxXij",
+              })}
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </div>
+      )}
 
       <ToggleButtonGroup
         size="sm"

@@ -1,6 +1,9 @@
 import type { CSSProperties, ReactElement } from "react";
 import { useMemo } from "react";
+import type { KeyBasis } from "~/core/song-print/KeyBasis";
+import { DEFAULT_KEY_BASIS } from "~/core/song-print/KeyBasis";
 import { parseLine } from "~/core/song-print/ParseLine";
+import { transposeView } from "~/core/song-print/SongTranspose";
 import type { Section, Segment, Song } from "~/core/song-print/SongTypes";
 import { transposeChord } from "~/core/song-print/TransposeChord";
 
@@ -31,6 +34,8 @@ export interface SongStageProps {
   /** Lyric size in px — chords are drawn proportionally smaller. */
   fontSize: number;
   columns?: number;
+  /** Which key the chords are written in when the song carries a transpose offset. */
+  keyBasis?: KeyBasis;
 }
 
 /**
@@ -38,9 +43,9 @@ export interface SongStageProps {
  * lyrics at whatever size the room needs. Unlike `SongDoc` nothing is measured
  * or packed — the stage scrolls instead of paginating.
  */
-export function SongStage({ song, fontSize, columns = 1 }: SongStageProps): ReactElement {
-  const semitones = Math.round(song.transpose ?? 0);
-  const sections = useMemo(() => prepare(song.sections ?? [], semitones), [song.sections, semitones]);
+export function SongStage({ song, fontSize, columns = 1, keyBasis = DEFAULT_KEY_BASIS }: SongStageProps): ReactElement {
+  const { shift } = transposeView(song, keyBasis);
+  const sections = useMemo(() => prepare(song.sections ?? [], shift), [song.sections, shift]);
 
   const chordSize = fontSize * 0.62;
   const lyricStyle: CSSProperties = { fontSize: `${fontSize}px`, lineHeight: 1.42 };

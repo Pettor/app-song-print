@@ -111,6 +111,7 @@ export const ValidationError: Story = {
 ### Decorators
 
 Available decorators from `@package/storybook`:
+
 - `ContainerDecorator` — wraps the component in a centered container for form/card layouts
 
 ### After Creating/Updating Stories

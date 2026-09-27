@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect } from "storybook/test";
 import { SongDoc as Component } from "./SongDoc";
 import type { SongDocProps as ComponentProps } from "./SongDoc";
 import type { Song } from "~/core/song-print/SongTypes";
@@ -30,12 +31,67 @@ const exampleSong: Song = {
   ],
 };
 
+/**
+ * The header chips of the drawn page, as label \u2192 value.
+ *
+ * The off-screen measurement pass renders a second, hidden copy of the header,
+ * and chord badges repeat the key names all over the sheet \u2014 so reading the
+ * chips off `.sp-page` is the only unambiguous way to assert on them.
+ */
+function metaChips(canvasElement: HTMLElement): Record<string, string> {
+  const drawn = canvasElement.querySelector(".sp-page");
+  if (!drawn) throw new Error("No page was drawn");
+
+  return Object.fromEntries(
+    Array.from(drawn.querySelectorAll(".sp-metachip")).map((chip) => [
+      chip.querySelector(".sp-metalabel")?.textContent ?? "",
+      chip.querySelector(".sp-metavalue")?.textContent ?? "",
+    ])
+  );
+}
+
+/** The chord badges on the drawn page, in reading order. */
+function chords(canvasElement: HTMLElement): string[] {
+  const drawn = canvasElement.querySelector(".sp-page");
+  if (!drawn) throw new Error("No page was drawn");
+
+  return Array.from(drawn.querySelectorAll(".sp-chord")).map((c) => c.textContent ?? "");
+}
+
 export const Default: Story = {
   args: { song: exampleSong } satisfies ComponentProps,
 };
 
 export const Transposed: Story = {
   args: { song: { ...exampleSong, transpose: 2 } } satisfies ComponentProps,
+  play: async ({ canvasElement }) => {
+    // One key and no offset chip: the sheet is read, not diffed.
+    await expect(metaChips(canvasElement).Key).toBe("D");
+    await expect(metaChips(canvasElement).Transpose).toBeUndefined();
+    await expect(chords(canvasElement).slice(0, 4)).toEqual(["D", "A", "Bm", "G"]);
+  },
+};
+
+/**
+ * The offset is in effect but the chords stay in the written key, for a player
+ * transposing by hand while the band reads the transposed sheet: the key chip
+ * names both keys and a fourth chip states the offset.
+ */
+export const TransposedOriginalKey: Story = {
+  args: { song: { ...exampleSong, transpose: 2 }, keyBasis: "original" } satisfies ComponentProps,
+  play: async ({ canvasElement }) => {
+    await expect(metaChips(canvasElement).Key).toBe("C \u2192 D");
+    await expect(metaChips(canvasElement).Transpose).toBe("+2");
+    await expect(chords(canvasElement).slice(0, 4)).toEqual(["C", "G", "Am", "F"]);
+  },
+};
+
+export const TransposedDownOriginalKey: Story = {
+  args: { song: { ...exampleSong, transpose: -3 }, keyBasis: "original" } satisfies ComponentProps,
+  play: async ({ canvasElement }) => {
+    await expect(metaChips(canvasElement).Key).toBe("C \u2192 A");
+    await expect(metaChips(canvasElement).Transpose).toBe("-3");
+  },
 };
 
 export const TwoColumns: Story = {
