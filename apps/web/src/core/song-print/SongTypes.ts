@@ -30,6 +30,8 @@ export type Section = z.infer<typeof SectionSchema>;
 export const SongSchema = z.object({
   title: z.string().optional(),
   artist: z.string().optional(),
+  /** Position in the setlist: orders the song picker and prints beside the title. */
+  order: z.number().optional(),
   key: z.string().optional(),
   capo: z.number().optional(),
   tempo: z.number().optional(),

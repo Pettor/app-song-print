@@ -58,8 +58,28 @@ function chords(canvasElement: HTMLElement): string[] {
   return Array.from(drawn.querySelectorAll(".sp-chord")).map((c) => c.textContent ?? "");
 }
 
+/** The setlist badge on the drawn page, or null when the song has no `order`. */
+function orderBadge(canvasElement: HTMLElement): string | null {
+  const drawn = canvasElement.querySelector(".sp-page");
+  if (!drawn) throw new Error("No page was drawn");
+
+  return drawn.querySelector(".sp-order")?.textContent ?? null;
+}
+
 export const Default: Story = {
   args: { song: exampleSong } satisfies ComponentProps,
+  play: async ({ canvasElement }) => {
+    // No `order`, no badge — the header is the title alone.
+    await expect(orderBadge(canvasElement)).toBeNull();
+  },
+};
+
+/** A song placed in a setlist: its position is printed beside the title. */
+export const SetlistOrder: Story = {
+  args: { song: { ...exampleSong, order: 3 } } satisfies ComponentProps,
+  play: async ({ canvasElement }) => {
+    await expect(orderBadge(canvasElement)).toBe("3");
+  },
 };
 
 export const Transposed: Story = {

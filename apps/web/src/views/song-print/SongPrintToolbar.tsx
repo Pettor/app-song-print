@@ -49,6 +49,14 @@ export interface SongPrintToolbarProps {
   isExporting: boolean;
 }
 
+/**
+ * A song's setlist position, shown ahead of its label so the picker reads as
+ * the running order it is sorted into.
+ */
+function orderOf(song: Preset): string | null {
+  return song.data.order === undefined ? null : String(song.data.order);
+}
+
 export function SongPrintToolbar({
   isSourceOpen,
   onToggleSource,
@@ -135,14 +143,28 @@ export function SongPrintToolbar({
           })}
         >
           <Select.Trigger className="min-w-40">
-            <Select.Value>{selectedSong?.label}</Select.Value>
+            <Select.Value>
+              {selectedSong && (
+                <span className="flex items-baseline gap-2">
+                  {orderOf(selectedSong) && (
+                    <span className="text-default-500 flex-none tabular-nums">{orderOf(selectedSong)}</span>
+                  )}
+                  <span className="truncate">{selectedSong.label}</span>
+                </span>
+              )}
+            </Select.Value>
             <Select.Indicator />
           </Select.Trigger>
           <Select.Popover>
             <ListBox>
               {songs.map((song) => (
                 <ListBoxItem key={song.id} id={song.id} textValue={song.label}>
-                  {song.label}
+                  <span className="flex items-baseline gap-2">
+                    <span className="text-default-500 w-5 flex-none text-right text-xs tabular-nums">
+                      {orderOf(song)}
+                    </span>
+                    {song.label}
+                  </span>
                 </ListBoxItem>
               ))}
             </ListBox>

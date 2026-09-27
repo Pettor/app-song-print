@@ -76,7 +76,8 @@ SONGS_DIR=/path/to/your/songs
 ```
 
 Every `*.json` file directly inside that folder is loaded as one song — the filename becomes its
-id, and its `title` becomes the label in the song picker. This keeps your actual song library
+id, and its `title` becomes the label in the song picker. Songs with an `order` lead the picker in
+setlist order; the rest follow in filename order. This keeps your actual song library
 (lyrics, chords) out of this repo entirely; only the app code lives here. Saving from the editor
 panel (dev server only) writes straight back into the matching file in `SONGS_DIR`.
 
@@ -89,6 +90,7 @@ also watches the directory and reloads when a file there changes.
 ```json
 {
   "title": "En enda sak är säker",
+  "order": 3,
   "key": "Dm",
   "capo": 0,
   "tempo": 92,
@@ -107,6 +109,7 @@ also watches the directory and reloads when a file there changes.
 | Field                  | Notes                                                                                                    |
 | ---------------------- | -------------------------------------------------------------------------------------------------------- |
 | `title`, `artist`      | Printed in the header on page one                                                                        |
+| `order`                | Position in the setlist. Sorts the song picker and prints as a badge beside the title                    |
 | `key`, `capo`, `tempo` | Optional; shown as compact metadata                                                                      |
 | `transpose`            | Semitones. Negative shifts down. See [Printing the original key](#printing-the-original-key)             |
 | `page.format`          | `A4`, `A5` or `Letter`                                                                                   |

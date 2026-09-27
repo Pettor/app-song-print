@@ -155,14 +155,32 @@ function SongHeader({ song, view }: SongHeaderProps): ReactElement | null {
     });
   }
 
-  if (!song.title && !song.artist && !hasMeta) return null;
+  if (!song.title && !song.artist && !hasMeta && song.order === undefined) return null;
 
   return (
     <>
       <div className="sp-header">
-        <div className="sp-titles">
-          {song.title && <h1 className="sp-title">{song.title}</h1>}
-          {song.artist && <div className="sp-artist">{song.artist}</div>}
+        <div className="sp-heading">
+          {/* Setlist position, sized to be found at a glance on a music stand. */}
+          {song.order !== undefined && (
+            <div
+              className="sp-order"
+              aria-label={intl.formatMessage(
+                {
+                  description: "SongDoc: sheet header - position of the song in the setlist",
+                  defaultMessage: "Setlist position {order}",
+                  id: "/WxKpH",
+                },
+                { order: song.order }
+              )}
+            >
+              {song.order}
+            </div>
+          )}
+          <div className="sp-titles">
+            {song.title && <h1 className="sp-title">{song.title}</h1>}
+            {song.artist && <div className="sp-artist">{song.artist}</div>}
+          </div>
         </div>
         {hasMeta && (
           <div className="sp-meta">
