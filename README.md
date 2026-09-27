@@ -38,7 +38,8 @@ Sections can carry lyrics, a bare chord sequence for instrumental parts, or both
 
 **Page fitting.** Sections are measured and packed so one is never split across a column unless it
 cannot fit a column on its own — and then the continuation is labelled `cont.`. A4, A5 and Letter,
-portrait or landscape, in one, two or three columns.
+portrait or landscape, in one, two or three columns. Two tags override the packing where you want
+it overridden: `[bl]` adds a blank line, `[bp]` starts a new page.
 
 **Transposition.** Shift the whole song by a number of semitones before printing. Slash chords
 transpose both halves; markers like `N.C.` are left alone. A transposed sheet can also be printed
@@ -117,13 +118,38 @@ also watches the directory and reloads when a file there changes.
 | `page.columns`         | `1`, `2` or `3`. More columns fit more on a sheet, at a narrower measure — watch for long lines wrapping |
 | `page.fontSize`        | Lyric size in px. Chords scale with it                                                                   |
 | `sections[].name`      | Free text, printed as `[Verse 1]`                                                                        |
-| `sections[].lines`     | Lyrics with `[Chord]` markers. `""` is a blank spacer line                                               |
+| `sections[].lines`     | Lyrics with `[Chord]` markers. `""` is a blank spacer line, and see [Layout tags](#layout-tags)          |
 | `sections[].chords`    | Bare chord sequence, for intros and breaks                                                               |
 | `sections[].note`      | Small performance note beside the section name                                                           |
 
 A chord attaches to the text **after** it. Write `[[` for a literal `[`. Every field except
 `sections` is optional — the preview re-renders on every keystroke, so half-typed JSON has to
 render rather than crash.
+
+### Layout tags
+
+Two bracket tags inside `lines` are read by the layout instead of being printed. Both are
+case-insensitive, and `[[bl]` prints a literal `[bl]` like any other escaped bracket.
+
+| Tag    | Effect                                                                                                  |
+| ------ | ------------------------------------------------------------------------------------------------------- |
+| `[bl]` | **Break line.** Ends the line and leaves a blank one behind it — vertical space, on demand              |
+| `[bp]` | **Break page.** Ends the line and sends everything after it to a new page, whatever `page.columns` says |
+
+```json
+{
+  "sections": [
+    { "name": "Verse 1", "lines": ["[Dm]First group", "[bl]", "[Gm]Second group, spaced apart", "[bp]"] },
+    { "name": "Chorus", "lines": ["[A]Starts page two"] }
+  ]
+}
+```
+
+`[bl]` on a line of its own is the same thing as `""`; written mid-line it breaks the line there and
+spaces the halves apart, and repeating it (`"[bl][bl]"`) stacks blank lines. `[bp]` splits its
+section if it lands mid-section — the continuation repeats the section name as `cont.` — and a `[bp]`
+after a section's last line breaks before the section that follows. On the live stage view, which
+scrolls rather than paginating, `[bl]` still spaces lines apart and `[bp]` is ignored.
 
 ### Printing the original key
 

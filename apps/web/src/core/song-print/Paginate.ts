@@ -1,3 +1,11 @@
+/** Forced breaks the packer has to honour on top of what the heights ask for. */
+export interface PackBreaks {
+  /** Indices of flowables that must begin a new page. */
+  pageBreak?: ReadonlySet<number>;
+  /** Columns per page, needed to pad out to the next page boundary. */
+  columnsPerPage?: number;
+}
+
 /**
  * Greedy column packer.
  *
@@ -8,9 +16,11 @@
 export function buildColumns(
   heights: number[],
   colHeight: number | ((columnIndex: number) => number),
-  gap: number
+  gap: number,
+  breaks?: PackBreaks
 ): number[][] {
   const heightFor = typeof colHeight === "function" ? colHeight : () => colHeight;
+  const perPage = Math.max(1, breaks?.columnsPerPage ?? 1);
   const columns: number[][] = [];
   let current: number[] = [];
   let used = 0;
@@ -19,7 +29,16 @@ export function buildColumns(
     const h = heights[i] ?? 0;
     const need = h + (current.length ? gap : 0);
 
-    if (need > heightFor(columns.length) - used && current.length > 0) {
+    // A forced page break closes the column and pads the page out with empty
+    // ones, so the flowable lands in the first column of the next page.
+    if (breaks?.pageBreak?.has(i)) {
+      if (current.length > 0) {
+        columns.push(current);
+        current = [];
+        used = 0;
+      }
+      while (columns.length > 0 && columns.length % perPage !== 0) columns.push([]);
+    } else if (need > heightFor(columns.length) - used && current.length > 0) {
       columns.push(current);
       current = [];
       used = 0;

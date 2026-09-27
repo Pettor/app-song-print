@@ -54,6 +54,11 @@ describe("distinctChords", () => {
   it("returns nothing for a song with no sections", () => {
     expect(distinctChords({})).toEqual([]);
   });
+
+  it("skips the layout tags, which are not chords", () => {
+    const tagged: Song = { sections: [{ lines: ["[bl]", "[C]one[bp]", "[G]two"] }] };
+    expect(distinctChords(tagged)).toEqual(["C", "G"]);
+  });
 });
 
 describe("effectiveKey", () => {

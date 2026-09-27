@@ -1,4 +1,5 @@
 import type { KeyBasis } from "./KeyBasis";
+import { isLayoutTag } from "./LineTags";
 import { parseLine } from "./ParseLine";
 import type { Section, Song } from "./SongTypes";
 import { transposeChord } from "./TransposeChord";
@@ -51,7 +52,8 @@ export function distinctChords(song: Song): string[] {
   const out: string[] = [];
 
   function add(chord: string | undefined): void {
-    if (!chord || seen.has(chord)) return;
+    // [bl] and [bp] share the chord brackets but are layout, not music.
+    if (!chord || isLayoutTag(chord) || seen.has(chord)) return;
     seen.add(chord);
     out.push(chord);
   }

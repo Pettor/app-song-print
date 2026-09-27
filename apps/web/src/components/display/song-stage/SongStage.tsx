@@ -2,6 +2,7 @@ import type { CSSProperties, ReactElement } from "react";
 import { useMemo } from "react";
 import type { KeyBasis } from "~/core/song-print/KeyBasis";
 import { DEFAULT_KEY_BASIS } from "~/core/song-print/KeyBasis";
+import { expandLines } from "~/core/song-print/LineTags";
 import { parseLine } from "~/core/song-print/ParseLine";
 import { transposeView } from "~/core/song-print/SongTranspose";
 import type { Section, Segment, Song } from "~/core/song-print/SongTypes";
@@ -13,16 +14,21 @@ interface PreparedSection {
   lines: Segment[][];
 }
 
-/** Bare chord rows become a single chord-only line, same as on the sheet. */
+/**
+ * Bare chord rows become a single chord-only line, same as on the sheet.
+ *
+ * `[bl]` still spaces lines apart here, but `[bp]` is dropped rather than
+ * honoured — the stage scrolls, so it has no pages to break onto.
+ */
 function prepare(sections: Section[], semitones: number): PreparedSection[] {
   return sections.map((s) => {
     const lines: Segment[][] = [];
     if (s.chords?.length) {
       lines.push(s.chords.map((c) => ({ chord: transposeChord(c, semitones), text: "" })));
     }
-    for (const line of s.lines ?? []) {
+    for (const line of expandLines(s.lines ?? []).lines) {
       lines.push(
-        parseLine(line).map((seg) => (seg.chord ? { ...seg, chord: transposeChord(seg.chord, semitones) } : seg))
+        parseLine(line.text).map((seg) => (seg.chord ? { ...seg, chord: transposeChord(seg.chord, semitones) } : seg))
       );
     }
     return { name: s.name, note: s.note, lines };

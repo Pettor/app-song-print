@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { expect } from "storybook/test";
+import { expect, waitFor } from "storybook/test";
 import { SongDoc as Component } from "./SongDoc";
 import type { SongDocProps as ComponentProps } from "./SongDoc";
 import type { Song } from "~/core/song-print/SongTypes";
@@ -66,6 +66,16 @@ function orderBadge(canvasElement: HTMLElement): string | null {
   return drawn.querySelector(".sp-order")?.textContent ?? null;
 }
 
+/** The drawn pages, ignoring the hidden measurement pass. */
+function pages(canvasElement: HTMLElement): HTMLElement[] {
+  return Array.from(canvasElement.querySelectorAll<HTMLElement>(".sp-page"));
+}
+
+/** Section names printed on a page, in reading order. */
+function sectionNames(page: HTMLElement): string[] {
+  return Array.from(page.querySelectorAll(".sp-secname")).map((n) => n.textContent ?? "");
+}
+
 export const Default: Story = {
   args: { song: exampleSong } satisfies ComponentProps,
   play: async ({ canvasElement }) => {
@@ -124,6 +134,83 @@ export const AccentChords: Story = {
 
 export const PlainChords: Story = {
   args: { song: exampleSong, chordStyle: "plain" } satisfies ComponentProps,
+};
+
+/**
+ * `[bl]` breaks the line and leaves a blank one behind it, which is how two
+ * lyric groups inside one section are spaced apart.
+ */
+export const BreakLine: Story = {
+  args: {
+    song: {
+      ...exampleSong,
+      sections: [
+        {
+          name: "Verse 1",
+          lines: ["[C]First group, first line", "[G]first group, second line", "[bl]", "[Am]Second group[bl][F]Split"],
+        },
+      ],
+    },
+  } satisfies ComponentProps,
+  play: async ({ canvasElement }) => {
+    const [first] = pages(canvasElement);
+    if (!first) throw new Error("No page was drawn");
+
+    // One blank from the standalone tag, one from the mid-line tag.
+    await expect(first.querySelectorAll(".sp-line--blank")).toHaveLength(2);
+    // The mid-line tag split its line rather than printing a "bl" chord.
+    await expect(chords(canvasElement)).toEqual(["C", "G", "Am", "F"]);
+  },
+};
+
+/**
+ * `[bp]` sends what follows it to a new page, even with a second column still
+ * empty on the page it left.
+ */
+export const BreakPage: Story = {
+  args: {
+    song: {
+      ...exampleSong,
+      page: { ...exampleSong.page, columns: 2 },
+      sections: [
+        { name: "Verse 1", lines: ["[C]Ends the first page", "[bp]"] },
+        { name: "Chorus", lines: ["[G]Opens the second one"] },
+      ],
+    },
+  } satisfies ComponentProps,
+  play: async ({ canvasElement }) => {
+    await waitFor(async () => {
+      await expect(pages(canvasElement)).toHaveLength(2);
+    });
+
+    const [first, second] = pages(canvasElement);
+    await expect(sectionNames(first!)).toEqual(["[Verse 1]"]);
+    await expect(sectionNames(second!)).toEqual(["[Chorus]"]);
+  },
+};
+
+/** A `[bp]` inside a section splits it, and the remainder is labelled `cont.`. */
+export const BreakPageMidSection: Story = {
+  args: {
+    song: {
+      ...exampleSong,
+      sections: [
+        {
+          name: "Verse 1",
+          lines: ["[C]Stays on page one", "[bp]", "[G]Continues on page two"],
+        },
+      ],
+    },
+  } satisfies ComponentProps,
+  play: async ({ canvasElement }) => {
+    await waitFor(async () => {
+      await expect(pages(canvasElement)).toHaveLength(2);
+    });
+
+    const [first, second] = pages(canvasElement);
+    await expect(sectionNames(first!)).toEqual(["[Verse 1]"]);
+    await expect(sectionNames(second!)).toEqual(["[Verse 1 cont.]"]);
+  },
 };
 
 export const Empty: Story = {

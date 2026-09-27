@@ -24,6 +24,22 @@ describe("buildColumns", () => {
   it("returns an empty array for no items", () => {
     expect(buildColumns([], 100, 5)).toEqual([]);
   });
+
+  it("starts a new column at a forced page break", () => {
+    expect(buildColumns([10, 10], 100, 5, { pageBreak: new Set([1]) })).toEqual([[0], [1]]);
+  });
+
+  it("pads the page out with empty columns so the break lands on the next page", () => {
+    expect(buildColumns([10, 10], 100, 5, { pageBreak: new Set([1]), columnsPerPage: 2 })).toEqual([[0], [], [1]]);
+  });
+
+  it("ignores a forced break on the very first flowable", () => {
+    expect(buildColumns([10, 10], 100, 5, { pageBreak: new Set([0]), columnsPerPage: 2 })).toEqual([[0, 1]]);
+  });
+
+  it("does not pad a break that already sits on a page boundary", () => {
+    expect(buildColumns([60, 60, 10], 100, 5, { pageBreak: new Set([2]), columnsPerPage: 2 })).toEqual([[0], [1], [2]]);
+  });
 });
 
 describe("chunkPages", () => {

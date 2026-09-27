@@ -7,6 +7,7 @@ import type { ChordStyle } from "~/core/song-print/ChordStyle";
 import { DEFAULT_CHORD_STYLE } from "~/core/song-print/ChordStyle";
 import type { KeyBasis } from "~/core/song-print/KeyBasis";
 import { DEFAULT_KEY_BASIS } from "~/core/song-print/KeyBasis";
+import { expandLines } from "~/core/song-print/LineTags";
 import {
   COLUMN_GUTTER,
   PAGE_PAD_BOTTOM,
@@ -24,15 +25,24 @@ import { transposeView } from "~/core/song-print/SongTranspose";
 import type { Section, Segment, Song } from "~/core/song-print/SongTypes";
 import { transposeChord } from "~/core/song-print/TransposeChord";
 
-/** A section with its lines already parsed and transposed. */
+/** One drawn line, with the forced break `[bp]` put in front of it. */
+interface PreparedLine {
+  segments: Segment[];
+  /** Starts a new page, whatever the column packing would have done. */
+  pageBreak?: boolean;
+}
+
+/** A section with its lines already expanded, parsed and transposed. */
 interface PreparedSection {
   name?: string;
   note?: string;
   chords?: string[];
-  lines: Segment[][];
+  lines: PreparedLine[];
+  /** A `[bp]` after the section's last line: the next section starts a page. */
+  breakAfter: boolean;
 }
 
-/** A renderable slice of a section — the whole thing, or a page-split part. */
+/** A renderable slice of a section — the whole thing, or a split part. */
 interface Unit {
   section: number;
   from: number;
@@ -41,14 +51,21 @@ interface Unit {
 }
 
 function prepare(sections: Section[], semitones: number): PreparedSection[] {
-  return sections.map((s) => ({
-    name: s.name,
-    note: s.note,
-    chords: s.chords?.map((c) => transposeChord(c, semitones)),
-    lines: (s.lines ?? []).map((l) =>
-      parseLine(l).map((seg) => (seg.chord ? { ...seg, chord: transposeChord(seg.chord, semitones) } : seg))
-    ),
-  }));
+  return sections.map((s) => {
+    const expanded = expandLines(s.lines ?? []);
+    return {
+      name: s.name,
+      note: s.note,
+      chords: s.chords?.map((c) => transposeChord(c, semitones)),
+      lines: expanded.lines.map((line) => ({
+        ...(line.pageBreak ? { pageBreak: true } : {}),
+        segments: parseLine(line.text).map((seg) =>
+          seg.chord ? { ...seg, chord: transposeChord(seg.chord, semitones) } : seg
+        ),
+      })),
+      breakAfter: expanded.breakAfter,
+    };
+  });
 }
 
 interface SectionHeadProps {
@@ -82,8 +99,8 @@ function SectionBody({ s, from, to }: SectionBodyProps): ReactElement {
   return (
     <>
       {s.chords && s.chords.length > 0 && from === 0 && <ChordRow chords={s.chords} />}
-      {s.lines.slice(from, to).map((segs, i) => (
-        <ChordLine segments={segs} key={from + i} />
+      {s.lines.slice(from, to).map((line, i) => (
+        <ChordLine segments={line.segments} key={from + i} />
       ))}
     </>
   );
@@ -294,7 +311,9 @@ export function SongDoc({
 
     const songHeaderH = heightOf(headRef.current);
 
-    // Per-section header, line and total heights, measured at final column width.
+    // Per-section header, line and total heights, measured at final column
+    // width. [data-line] stays aligned 1:1 with the prepared lines — a bare
+    // chord row is part of the section's chrome, not a line a split can land on.
     const headH: number[] = [];
     const lineH: number[][] = [];
     const chromeH: number[] = [];
@@ -313,38 +332,66 @@ export function SongDoc({
       chromeH.push(Math.max(0, total - h - ls.reduce((a, b) => a + b, 0)));
     });
 
-    // A section is atomic unless it cannot fit a column on its own, in which
-    // case it splits at line boundaries and repeats its header as "cont.".
+    // A section is atomic unless a [bp] cuts it, or it cannot fit a column on
+    // its own — then it splits at line boundaries and repeats its header as
+    // "cont.".
     const units: Unit[] = [];
     const heights: number[] = [];
+    const pageBreaks = new Set<number>();
+
+    // A [bp] with no line after it in its own section breaks before the next.
+    let carried = false;
 
     sections.forEach((s, i) => {
       const lines = lineH[i] ?? [];
       const head = headH[i] ?? 0;
       const chrome = chromeH[i] ?? 0;
-      const full = head + chrome + lines.reduce((a, b) => a + b, 0);
       const budget = colH - head - chrome;
 
-      if (full <= colH || lines.length <= 1 || budget <= 0) {
-        units.push({ section: i, from: 0, to: s.lines.length, continued: false });
-        heights.push(full);
+      // A section reduced to nothing but a [bp] draws no unit, so pass its
+      // break on to the section that follows instead of losing it.
+      if (s.lines.length === 0 && !s.name && !s.note && !s.chords?.length) {
+        carried = carried || s.breakAfter;
         return;
       }
 
-      let from = 0;
-      let used = 0;
-      for (let j = 0; j < lines.length; j++) {
-        const lh = lines[j] ?? 0;
-        if (used + lh > budget && j > from) {
-          units.push({ section: i, from, to: j, continued: from > 0 });
-          heights.push(head + chrome + used);
-          from = j;
-          used = 0;
-        }
-        used += lh;
+      function push(from: number, to: number, used: number, forced: boolean): void {
+        if (forced && units.length > 0) pageBreaks.add(units.length);
+        units.push({ section: i, from, to, continued: from > 0 });
+        heights.push(head + chrome + used);
       }
-      units.push({ section: i, from, to: lines.length, continued: from > 0 });
-      heights.push(head + chrome + used);
+
+      // Cut points: the section start, then every line carrying a [bp].
+      const cuts = [0, ...s.lines.flatMap((line, j) => (j > 0 && line.pageBreak ? [j] : [])), s.lines.length];
+
+      for (let c = 0; c < cuts.length - 1; c++) {
+        const start = cuts[c] ?? 0;
+        const end = cuts[c + 1] ?? start;
+        // The first chunk breaks on a leading [bp] or one carried over; every
+        // later chunk exists only because a [bp] cut it.
+        const forced = c > 0 || carried || !!s.lines[0]?.pageBreak;
+        const span = lines.slice(start, end).reduce((a, b) => a + b, 0);
+
+        if (head + chrome + span <= colH || end - start <= 1 || budget <= 0) {
+          push(start, end, span, forced);
+          continue;
+        }
+
+        let from = start;
+        let used = 0;
+        for (let j = start; j < end; j++) {
+          const lh = lines[j] ?? 0;
+          if (used + lh > budget && j > from) {
+            push(from, j, used, forced && from === start);
+            from = j;
+            used = 0;
+          }
+          used += lh;
+        }
+        push(from, end, used, forced && from === start);
+      }
+
+      carried = s.breakAfter;
     });
 
     // Page one loses height to the song header; later pages get the full column.
@@ -353,7 +400,10 @@ export function SongDoc({
       return columnIndex < firstPageColumns ? colH - songHeaderH : colH;
     }
 
-    const columns = buildColumns(heights, heightFor, SECTION_GAP);
+    const columns = buildColumns(heights, heightFor, SECTION_GAP, {
+      pageBreak: pageBreaks,
+      columnsPerPage: page.columns,
+    });
     setLayout({ sig, pages: chunkPages(columns, page.columns), units });
     // `sig` already encodes every reactive value this effect reads (song, colW,
     // colH), but list them explicitly too so the effect stays compiler-safe.
@@ -396,13 +446,13 @@ export function SongDoc({
             <SectionHead name={s.name} note={s.note} />
           </div>
           {s.chords && s.chords.length > 0 && (
-            <div data-line="">
+            <div data-chords="">
               <ChordRow chords={s.chords} />
             </div>
           )}
-          {s.lines.map((segs, j) => (
+          {s.lines.map((line, j) => (
             <div data-line="" key={j}>
-              <ChordLine segments={segs} />
+              <ChordLine segments={line.segments} />
             </div>
           ))}
         </div>
