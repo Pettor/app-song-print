@@ -113,8 +113,8 @@ function SongHeader({ song, semitones }: SongHeaderProps): ReactElement | null {
         defaultMessage: "Key",
         id: "kEhm3r",
       }),
-      // A pending offset shows both keys, so the sheet says what it is played in.
-      value: !song.key ? NO_VALUE : semitones && shifted !== song.key ? `${song.key} → ${shifted}` : (shifted ?? ""),
+      // Only the key being played, transposed or not — the sheet is read, not diffed.
+      value: song.key ? (shifted ?? "") : NO_VALUE,
     },
     {
       label: intl.formatMessage({
