@@ -13,7 +13,8 @@ export interface UseSongEditorStateResult {
   song: Song;
   error: string | null;
   format: () => void;
-  setPage: (patch: Partial<PageSpec> | ((page: PageSpec) => Partial<PageSpec>)) => void;
+  /** Applies the patch and returns the resulting JSON text, or null if the text would not parse. */
+  setPage: (patch: Partial<PageSpec> | ((page: PageSpec) => Partial<PageSpec>)) => string | null;
   setSong: (song: Song) => void;
   onTabKey: (e: KeyboardEvent<HTMLTextAreaElement>) => void;
 }
@@ -74,15 +75,20 @@ export function useSongEditorState({ initialText }: UseSongEditorStateOptions): 
   // The patch may be a function of the page as it stands in the text right
   // now, not of the debounced `song` — otherwise two quick presses of the same
   // stepper both compute from the same stale value and one is lost.
+  // Returns the text it wrote so a caller can persist that exact document
+  // without waiting a render for `text` to catch up.
   const setPage = useCallback(
-    (patch: Partial<PageSpec> | ((page: PageSpec) => Partial<PageSpec>)) => {
+    (patch: Partial<PageSpec> | ((page: PageSpec) => Partial<PageSpec>)): string | null => {
       try {
         const parsed = JSON.parse(text) as Song;
         const current = parsed.page ?? {};
         parsed.page = { ...current, ...(typeof patch === "function" ? patch(current) : patch) };
-        setText(JSON.stringify(parsed, null, 2));
+        const next = JSON.stringify(parsed, null, 2);
+        setText(next);
+        return next;
       } catch {
         /* invalid JSON — the controls are disabled, so this should not happen */
+        return null;
       }
     },
     [text]

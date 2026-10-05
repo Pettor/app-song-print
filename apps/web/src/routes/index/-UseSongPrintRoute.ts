@@ -8,7 +8,7 @@ import { useSongPreviewScale } from "./-UseSongPreviewScale";
 import { useSongTranspose } from "./-UseSongTranspose";
 import { lastPresetIdAtom } from "~/core/song-print/LastPresetAtoms";
 import { SHEET_FONT_MAX, SHEET_FONT_MIN, getPageSpec } from "~/core/song-print/PageFormats";
-import { chordStyleAtom, sourceOpenAtom } from "~/core/song-print/SheetPrefsAtoms";
+import { chordStyleAtom, keyBasisAtom, sourceOpenAtom } from "~/core/song-print/SheetPrefsAtoms";
 import { downloadSong, openSongFile, savePreset, toFilename, writeSongFile } from "~/core/song-print/SongFileIo";
 import { SONGS, SONGS_SOURCE } from "~/core/song-print/SongLibrary";
 import type { PageFormat, Preset } from "~/core/song-print/SongTypes";
@@ -39,6 +39,7 @@ export function useSongPrintRoute(): SongPrintViewProps {
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const [chordStyle, setChordStyle] = useAtom(chordStyleAtom);
+  const [keyBasis, setKeyBasis] = useAtom(keyBasisAtom);
   const [isSourceOpen, setIsSourceOpen] = useAtom(sourceOpenAtom);
   const [, setThemeMode] = useAtom(themeModeAtom);
   const resolvedTheme = useAtomValue(resolvedThemeModeAtom);
@@ -84,16 +85,21 @@ export function useSongPrintRoute(): SongPrintViewProps {
 
   // Overwrite whatever the song came from: the file it was opened from, or its
   // entry in SONGS_DIR via the dev server. No picker, no download.
-  const saveFile = useCallback(async () => {
-    try {
-      if (fileHandle) await writeSongFile(fileHandle, editor.text);
-      else await savePreset(presetId, JSON.parse(editor.text));
-      setSaveError(null);
-      flashSaved();
-    } catch (e) {
-      setSaveError((e as Error).message);
-    }
-  }, [editor.text, presetId, fileHandle, flashSaved]);
+  const saveText = useCallback(
+    async (text: string) => {
+      try {
+        if (fileHandle) await writeSongFile(fileHandle, text);
+        else await savePreset(presetId, JSON.parse(text));
+        setSaveError(null);
+        flashSaved();
+      } catch (e) {
+        setSaveError((e as Error).message);
+      }
+    },
+    [presetId, fileHandle, flashSaved]
+  );
+
+  const saveFile = useCallback(() => saveText(editor.text), [saveText, editor.text]);
 
   const downloadFile = useCallback(() => {
     downloadSong(editor.text, toFilename(editor.song.title));
@@ -104,6 +110,18 @@ export function useSongPrintRoute(): SongPrintViewProps {
   // to save to. An opened file needs a handle, which the input fallback does
   // not provide.
   const canSave = fileHandle !== null || (!!presetId && import.meta.env.DEV && SONGS_SOURCE === "directory");
+
+  // The column count is flipped while comparing layouts, so it is written
+  // straight back to the song's file instead of waiting for an explicit Save.
+  // `setPage` hands back the text it just wrote — `editor.text` is a render
+  // behind at this point.
+  const changeColumns = useCallback(
+    (columns: number) => {
+      const next = editor.setPage({ columns });
+      if (next !== null && canSave) void saveText(next);
+    },
+    [editor, canSave, saveText]
+  );
 
   const saveTitle = saveError
     ? intl.formatMessage(
@@ -161,8 +179,11 @@ export function useSongPrintRoute(): SongPrintViewProps {
       isSourceOpen,
       onToggleSource: () => setIsSourceOpen(!isSourceOpen),
       columns: page.columns,
-      onColumnsChange: (columns: number) => editor.setPage({ columns }),
+      onColumnsChange: changeColumns,
       isColumnsDisabled: !!editor.error,
+      keyBasis,
+      onKeyBasisChange: setKeyBasis,
+      isTransposed: Math.round(editor.song.transpose ?? 0) !== 0,
       songs: SONGS,
       selectedPresetId: presetId,
       onSelectPreset: loadPreset,
@@ -206,6 +227,7 @@ export function useSongPrintRoute(): SongPrintViewProps {
     preview: {
       song: editor.song,
       chordStyle,
+      keyBasis,
       scale: preview.scale,
       containerRef: preview.containerRef,
     },
@@ -219,6 +241,7 @@ export function useSongPrintRoute(): SongPrintViewProps {
       onToggleScroll: live.toggleScrolling,
       onExit: () => live.setMode("print"),
       scrollRef: live.scrollRef,
+      keyBasis,
     },
     isLive: live.mode === "live",
     isSourceOpen,

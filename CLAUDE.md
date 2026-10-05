@@ -175,13 +175,13 @@ Files prefixed with `-` are ignored by TanStack Router. Detail: [`docs/patterns.
 
 ### State Management
 
-| Scope | Mechanism | Location |
-| --- | --- | --- |
-| Global, persisted UI state | Jotai atoms + `atomEffect` | `core/<feature>/XxxAtoms.ts` |
-| Feature-local UI state | Jotai atoms | next to the component (e.g. `components/actions/command-palette/CommandPaletteAtoms.ts`) |
-| Server state | `@tanstack/react-query` | `packages/api` hooks; route loaders |
-| Auth state | Jotai atoms + initializer | `core/auth/` |
-| Component-local state | `useState`, `useReducer` | inline |
+| Scope                      | Mechanism                  | Location                                                                                 |
+| -------------------------- | -------------------------- | ---------------------------------------------------------------------------------------- |
+| Global, persisted UI state | Jotai atoms + `atomEffect` | `core/<feature>/XxxAtoms.ts`                                                             |
+| Feature-local UI state     | Jotai atoms                | next to the component (e.g. `components/actions/command-palette/CommandPaletteAtoms.ts`) |
+| Server state               | `@tanstack/react-query`    | `packages/api` hooks; route loaders                                                      |
+| Auth state                 | Jotai atoms + initializer  | `core/auth/`                                                                             |
+| Component-local state      | `useState`, `useReducer`   | inline                                                                                   |
 
 **Atoms co-locate with their consumer.** There is no central `src/atoms/` folder. See [`docs/patterns.md#atoms-co-location`](./docs/patterns.md#atoms-co-location).
 
@@ -195,20 +195,20 @@ Files prefixed with `-` are ignored by TanStack Router. Detail: [`docs/patterns.
 
 ## Naming & File Conventions
 
-| Thing | Convention | Example |
-| --- | --- | --- |
-| React components | PascalCase file + function declaration | `LoginView.tsx`, `function LoginView()` |
-| Component folders | `kebab-case` | `command-palette/`, `input-field/` |
-| Hooks | PascalCase file with `Use` prefix | `UseAuth.ts`, `UseDocumentTitle.ts` |
-| Route files | `route.tsx` (TanStack requirement) | `routes/_public/login/route.tsx` |
-| Route hooks | `-Use<Name>Route.ts` (leading `-` hides from router) | `-UseLoginRoute.ts` |
-| Controllers | `<Component>Controller.tsx` + `Use<Component>Controller.ts(x)` | `SettingsModalController.tsx` |
-| Utilities / classes | PascalCase | `TokenStorage.ts`, `JwtToken.ts` |
-| Jotai atom files | `PascalCaseAtoms.ts` | `ThemeAtoms.ts`, `AuthAtoms.ts` |
-| Jotai atom exports | `camelCase + Atom` suffix | `themeModeAtom` |
-| Views | `<Name>View.tsx` under `views/<name>/` | `LoginView.tsx`, `DashboardView.tsx` |
-| Stories | Co-located `<Component>.stories.tsx` | `Logo.stories.tsx` |
-| Props interfaces | `<ComponentName>Props` | `NavbarProps` |
+| Thing               | Convention                                                     | Example                                 |
+| ------------------- | -------------------------------------------------------------- | --------------------------------------- |
+| React components    | PascalCase file + function declaration                         | `LoginView.tsx`, `function LoginView()` |
+| Component folders   | `kebab-case`                                                   | `command-palette/`, `input-field/`      |
+| Hooks               | PascalCase file with `Use` prefix                              | `UseAuth.ts`, `UseDocumentTitle.ts`     |
+| Route files         | `route.tsx` (TanStack requirement)                             | `routes/_public/login/route.tsx`        |
+| Route hooks         | `-Use<Name>Route.ts` (leading `-` hides from router)           | `-UseLoginRoute.ts`                     |
+| Controllers         | `<Component>Controller.tsx` + `Use<Component>Controller.ts(x)` | `SettingsModalController.tsx`           |
+| Utilities / classes | PascalCase                                                     | `TokenStorage.ts`, `JwtToken.ts`        |
+| Jotai atom files    | `PascalCaseAtoms.ts`                                           | `ThemeAtoms.ts`, `AuthAtoms.ts`         |
+| Jotai atom exports  | `camelCase + Atom` suffix                                      | `themeModeAtom`                         |
+| Views               | `<Name>View.tsx` under `views/<name>/`                         | `LoginView.tsx`, `DashboardView.tsx`    |
+| Stories             | Co-located `<Component>.stories.tsx`                           | `Logo.stories.tsx`                      |
+| Props interfaces    | `<ComponentName>Props`                                         | `NavbarProps`                           |
 
 **Function style**: Prefer **function declarations** over arrow functions for components and named utilities. Arrow functions are acceptable for callbacks and inline handlers. (ESLint enforces this.)
 
@@ -254,9 +254,9 @@ Turborepo caches outputs; use `--force` to bypass cache when debugging build iss
 
 ## Environment Variables
 
-| Variable            | Default            | Mocks              |
-| ------------------- | ------------------ | ------------------ |
-| `VITE_APP_VERSION`  | `0.6.0`            | `0.6.0`            |
+| Variable           | Default | Mocks   |
+| ------------------ | ------- | ------- |
+| `VITE_APP_VERSION` | `0.6.0` | `0.6.0` |
 
 - `.env` — development defaults
 - `.env.mocks` — overrides for mock server mode
@@ -346,15 +346,15 @@ Hooks for panel-local state (filter, sort, range selection, derived totals) live
 
 ### When to Use HeroUI Components
 
-| Need | HeroUI Component |
-|---|---|
-| Buttons | `Button`, `ButtonGroup` |
-| Forms | `Input`, `Textarea`, `Select`, `Checkbox`, `Radio`, `RadioGroup`, `Switch` |
-| Layout | `Card`, `Divider`, `Spacer` |
-| Navigation | `Navbar`, `Tabs`, `Breadcrumbs`, `Link`, `Pagination` |
-| Feedback | `Modal`, `Popover`, `Tooltip`, `Alert`, `Spinner`, `Progress`, `Skeleton` |
-| Data display | `Table`, `Chip`, `Badge`, `Avatar`, `Accordion`, `Listbox` |
-| Overlay | `Dropdown`, `Modal`, `Drawer` |
+| Need         | HeroUI Component                                                           |
+| ------------ | -------------------------------------------------------------------------- |
+| Buttons      | `Button`, `ButtonGroup`                                                    |
+| Forms        | `Input`, `Textarea`, `Select`, `Checkbox`, `Radio`, `RadioGroup`, `Switch` |
+| Layout       | `Card`, `Divider`, `Spacer`                                                |
+| Navigation   | `Navbar`, `Tabs`, `Breadcrumbs`, `Link`, `Pagination`                      |
+| Feedback     | `Modal`, `Popover`, `Tooltip`, `Alert`, `Spinner`, `Progress`, `Skeleton`  |
+| Data display | `Table`, `Chip`, `Badge`, `Avatar`, `Accordion`, `Listbox`                 |
+| Overlay      | `Dropdown`, `Modal`, `Drawer`                                              |
 
 Always check the LLM docs first — HeroUI v3 may have components not listed here.
 
@@ -407,6 +407,7 @@ export function MyComponent(): ReactElement {
 ### Story Discovery
 
 Stories are discovered by Storybook from:
+
 - `apps/web/src/**/*.stories.tsx` (via node_modules symlink)
 - `packages/ui/src/**/*.stories.tsx` (via node_modules symlink)
 
@@ -414,10 +415,10 @@ Stories are discovered by Storybook from:
 
 Use these skills to follow established patterns when adding to the project:
 
-| Skill | Purpose |
-|---|---|
-| `/add-component` | Add a new UI component with HeroUI v3, Tailwind, React, and Storybook story |
-| `/add-component-test` | Add component tests using Storybook play functions |
+| Skill                 | Purpose                                                                     |
+| --------------------- | --------------------------------------------------------------------------- |
+| `/add-component`      | Add a new UI component with HeroUI v3, Tailwind, React, and Storybook story |
+| `/add-component-test` | Add component tests using Storybook play functions                          |
 
 ## Important Notes
 

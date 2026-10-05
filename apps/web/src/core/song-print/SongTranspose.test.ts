@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { distinctChords, effectiveKey, keyPrefersFlats, semitonesBetween, transposeSong } from "./SongTranspose";
+import {
+  distinctChords,
+  effectiveKey,
+  keyPrefersFlats,
+  semitonesBetween,
+  transposeSong,
+  transposeView,
+} from "./SongTranspose";
 import type { Song } from "./SongTypes";
 
 const song: Song = {
@@ -47,6 +54,11 @@ describe("distinctChords", () => {
   it("returns nothing for a song with no sections", () => {
     expect(distinctChords({})).toEqual([]);
   });
+
+  it("skips the layout tags, which are not chords", () => {
+    const tagged: Song = { sections: [{ lines: ["[bl]", "[C]one[bp]", "[G]two"] }] };
+    expect(distinctChords(tagged)).toEqual(["C", "G"]);
+  });
 });
 
 describe("effectiveKey", () => {
@@ -92,5 +104,58 @@ describe("transposeSong", () => {
 
     expect(result.sections?.[1]?.name).toBe("Verse 1");
     expect(result.title).toBe("Example Song");
+  });
+});
+
+describe("transposeView", () => {
+  it("applies the offset and reports one key on the transposed basis", () => {
+    expect(transposeView({ ...song, transpose: 2 }, "transposed")).toEqual({
+      shift: 2,
+      offset: 2,
+      writtenKey: "D",
+      soundingKey: "D",
+      isOriginal: false,
+    });
+  });
+
+  it("leaves the chords alone and reports both keys on the original basis", () => {
+    expect(transposeView({ ...song, transpose: 2 }, "original")).toEqual({
+      shift: 0,
+      offset: 2,
+      writtenKey: "C",
+      soundingKey: "D",
+      isOriginal: true,
+    });
+  });
+
+  it("keeps a downward offset signed as the song wrote it", () => {
+    expect(transposeView({ ...song, transpose: -3 }, "original")).toEqual({
+      shift: 0,
+      offset: -3,
+      writtenKey: "C",
+      soundingKey: "A",
+      isOriginal: true,
+    });
+  });
+
+  it("collapses to the plain sheet when there is no offset to choose about", () => {
+    const expected = { shift: 0, offset: 0, writtenKey: "C", soundingKey: "C", isOriginal: false };
+
+    expect(transposeView(song, "transposed")).toEqual(expected);
+    expect(transposeView(song, "original")).toEqual(expected);
+  });
+
+  it("reports no key at all when the song states none", () => {
+    expect(transposeView({ transpose: 2 }, "original")).toEqual({
+      shift: 0,
+      offset: 2,
+      writtenKey: "",
+      soundingKey: "",
+      isOriginal: true,
+    });
+  });
+
+  it("rounds a fractional offset, as the renderers do", () => {
+    expect(transposeView({ ...song, transpose: 1.6 }, "transposed").shift).toBe(2);
   });
 });

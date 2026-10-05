@@ -38,10 +38,13 @@ Sections can carry lyrics, a bare chord sequence for instrumental parts, or both
 
 **Page fitting.** Sections are measured and packed so one is never split across a column unless it
 cannot fit a column on its own — and then the continuation is labelled `cont.`. A4, A5 and Letter,
-portrait or landscape, in one, two or three columns.
+portrait or landscape, in one, two or three columns. Two tags override the packing where you want
+it overridden: `[bl]` adds a blank line, `[bp]` starts a new page.
 
 **Transposition.** Shift the whole song by a number of semitones before printing. Slash chords
-transpose both halves; markers like `N.C.` are left alone.
+transpose both halves; markers like `N.C.` are left alone. A transposed sheet can also be printed
+in its original key, for a player transposing by hand — see
+[Printing the original key](#printing-the-original-key).
 
 **Export.** One click to a paginated PDF at the song's page format, via `html2canvas` + `jsPDF`.
 
@@ -74,7 +77,8 @@ SONGS_DIR=/path/to/your/songs
 ```
 
 Every `*.json` file directly inside that folder is loaded as one song — the filename becomes its
-id, and its `title` becomes the label in the song picker. This keeps your actual song library
+id, and its `title` becomes the label in the song picker. Songs with an `order` lead the picker in
+setlist order; the rest follow in filename order. This keeps your actual song library
 (lyrics, chords) out of this repo entirely; only the app code lives here. Saving from the editor
 panel (dev server only) writes straight back into the matching file in `SONGS_DIR`.
 
@@ -87,6 +91,7 @@ also watches the directory and reloads when a file there changes.
 ```json
 {
   "title": "En enda sak är säker",
+  "order": 3,
   "key": "Dm",
   "capo": 0,
   "tempo": 92,
@@ -105,20 +110,64 @@ also watches the directory and reloads when a file there changes.
 | Field                  | Notes                                                                                                    |
 | ---------------------- | -------------------------------------------------------------------------------------------------------- |
 | `title`, `artist`      | Printed in the header on page one                                                                        |
-| `key`, `capo`, `tempo` | Optional; shown as compact metadata. With a transpose applied, the key prints as `Dm → Em`               |
-| `transpose`            | Semitones. Negative shifts down                                                                          |
+| `order`                | Position in the setlist. Sorts the song picker and prints as a badge beside the title                    |
+| `key`, `capo`, `tempo` | Optional; shown as compact metadata                                                                      |
+| `transpose`            | Semitones. Negative shifts down. See [Printing the original key](#printing-the-original-key)             |
 | `page.format`          | `A4`, `A5` or `Letter`                                                                                   |
 | `page.orientation`     | `portrait` or `landscape`                                                                                |
 | `page.columns`         | `1`, `2` or `3`. More columns fit more on a sheet, at a narrower measure — watch for long lines wrapping |
 | `page.fontSize`        | Lyric size in px. Chords scale with it                                                                   |
 | `sections[].name`      | Free text, printed as `[Verse 1]`                                                                        |
-| `sections[].lines`     | Lyrics with `[Chord]` markers. `""` is a blank spacer line                                               |
+| `sections[].lines`     | Lyrics with `[Chord]` markers. `""` is a blank spacer line, and see [Layout tags](#layout-tags)          |
 | `sections[].chords`    | Bare chord sequence, for intros and breaks                                                               |
 | `sections[].note`      | Small performance note beside the section name                                                           |
 
 A chord attaches to the text **after** it. Write `[[` for a literal `[`. Every field except
 `sections` is optional — the preview re-renders on every keystroke, so half-typed JSON has to
 render rather than crash.
+
+### Layout tags
+
+Two bracket tags inside `lines` are read by the layout instead of being printed. Both are
+case-insensitive, and `[[bl]` prints a literal `[bl]` like any other escaped bracket.
+
+| Tag    | Effect                                                                                                  |
+| ------ | ------------------------------------------------------------------------------------------------------- |
+| `[bl]` | **Break line.** Ends the line and leaves a blank one behind it — vertical space, on demand              |
+| `[bp]` | **Break page.** Ends the line and sends everything after it to a new page, whatever `page.columns` says |
+
+```json
+{
+  "sections": [
+    { "name": "Verse 1", "lines": ["[Dm]First group", "[bl]", "[Gm]Second group, spaced apart", "[bp]"] },
+    { "name": "Chorus", "lines": ["[A]Starts page two"] }
+  ]
+}
+```
+
+`[bl]` on a line of its own is the same thing as `""`; written mid-line it breaks the line there and
+spaces the halves apart, and repeating it (`"[bl][bl]"`) stacks blank lines. `[bp]` splits its
+section if it lands mid-section — the continuation repeats the section name as `cont.` — and a `[bp]`
+after a section's last line breaks before the section that follows. On the live stage view, which
+scrolls rather than paginating, `[bl]` still spaces lines apart and `[bp]` is ignored.
+
+### Printing the original key
+
+A song with a non-zero `transpose` is shifted on its way to the page, and the header prints the one
+key it ends up in. A **Key** toggle then appears in the top bar, because there is a second sheet
+worth printing: the same song left in its written key, for a player who transposes by hand — on a
+capo or a transposing instrument — while the rest of the band reads the transposed one.
+
+|                    | **Transposed** (default) | **Original** |
+| ------------------ | ------------------------ | ------------ |
+| Chords on the page | shifted by `transpose`   | as written   |
+| Key chip           | `Em`                     | `Dm → Em`    |
+| Transpose chip     | —                        | `+2`         |
+
+The choice applies to the preview, the PDF and live mode alike, and is remembered per device. It
+is a printing preference, so it never touches the JSON. Tools → **Transpose sheet** is the other
+thing entirely: it rewrites the chords into the new key and saves them, leaving no offset — and so
+no toggle.
 
 ## Stack
 

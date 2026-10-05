@@ -43,14 +43,14 @@ Each feature domain typically contains:
 
 Components are organised by **intent**:
 
-| Category | Purpose |
-| --- | --- |
-| `actions/` | UI that triggers side effects (command palette, theme selector, quick menus) |
-| `display/` | Presentation-only building blocks (grid items, cards, chips) |
-| `feedback/` | Overlays and dialogs that communicate state (settings modal, PWA dialogs) |
-| `forms/` | Form shells for specific flows (login, sign-up, forgot-password) |
-| `input/` | Reusable form controls (input field, checkboxes) |
-| `navigation/` | In-app navigation (navbar content, menu items) |
+| Category      | Purpose                                                                      |
+| ------------- | ---------------------------------------------------------------------------- |
+| `actions/`    | UI that triggers side effects (command palette, theme selector, quick menus) |
+| `display/`    | Presentation-only building blocks (grid items, cards, chips)                 |
+| `feedback/`   | Overlays and dialogs that communicate state (settings modal, PWA dialogs)    |
+| `forms/`      | Form shells for specific flows (login, sign-up, forgot-password)             |
+| `input/`      | Reusable form controls (input field, checkboxes)                             |
+| `navigation/` | In-app navigation (navbar content, menu items)                               |
 
 Each component lives in its own folder: `components/<category>/<component-name>/` with at least `<ComponentName>.tsx` and `<ComponentName>.stories.tsx`.
 
@@ -123,13 +123,13 @@ When a route needs to render a feature that reaches across the app (settings mod
 
 ## State management
 
-| Scope | Mechanism | Where |
-| --- | --- | --- |
-| Global, persisted UI state | Jotai atoms + `atomEffect` | `core/<feature>/XxxAtoms.ts` |
-| Local, ephemeral UI state | Jotai atoms (no persistence) | co-located with the consumer (e.g. `components/actions/command-palette/CommandPaletteAtoms.ts`) |
-| Server state | `@tanstack/react-query` | `packages/api` hooks; route loaders |
-| Auth state | Jotai atoms + initializer | `core/auth/` |
-| Component-local state | `useState`, `useReducer` | inline |
+| Scope                      | Mechanism                    | Where                                                                                           |
+| -------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------- |
+| Global, persisted UI state | Jotai atoms + `atomEffect`   | `core/<feature>/XxxAtoms.ts`                                                                    |
+| Local, ephemeral UI state  | Jotai atoms (no persistence) | co-located with the consumer (e.g. `components/actions/command-palette/CommandPaletteAtoms.ts`) |
+| Server state               | `@tanstack/react-query`      | `packages/api` hooks; route loaders                                                             |
+| Auth state                 | Jotai atoms + initializer    | `core/auth/`                                                                                    |
+| Component-local state      | `useState`, `useReducer`     | inline                                                                                          |
 
 Atoms live **as close to their consumer as possible**. There is no central `src/atoms/` folder — global atoms sit in the relevant `core/` feature, and feature-local atoms sit next to the component that owns the feature.
 

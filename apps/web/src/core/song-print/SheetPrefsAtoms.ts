@@ -1,6 +1,8 @@
 import { atomWithStorage } from "jotai/utils";
 import type { ChordStyle } from "./ChordStyle";
 import { DEFAULT_CHORD_STYLE } from "./ChordStyle";
+import type { KeyBasis } from "./KeyBasis";
+import { DEFAULT_KEY_BASIS } from "./KeyBasis";
 
 /**
  * How chords are drawn on the sheet. A viewing preference rather than part of
@@ -14,3 +16,9 @@ export const liveFontSizeAtom = atomWithStorage<number>("songprint.liveFontSize"
 
 /** Whether the JSON source panel is showing. */
 export const sourceOpenAtom = atomWithStorage<boolean>("songprint.sourceOpen", true);
+
+/**
+ * Whether a transposed sheet prints the transposed key or the original one. A
+ * property of the player reading it, not of the song, so it lives here.
+ */
+export const keyBasisAtom = atomWithStorage<KeyBasis>("songprint.keyBasis", DEFAULT_KEY_BASIS);

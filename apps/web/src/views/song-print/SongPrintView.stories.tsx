@@ -34,6 +34,9 @@ const defaultArgs = {
     columns: 1,
     onColumnsChange: fn(),
     isColumnsDisabled: false,
+    keyBasis: "transposed",
+    onKeyBasisChange: fn(),
+    isTransposed: false,
     songs,
     selectedPresetId: "example",
     onSelectPreset: fn(),
@@ -74,6 +77,7 @@ const defaultArgs = {
   preview: {
     song: exampleSong,
     chordStyle: "chip",
+    keyBasis: "transposed",
     scale: 1,
     containerRef: { current: null },
   },
@@ -97,6 +101,7 @@ const defaultArgs = {
     onToggleScroll: fn(),
     onExit: fn(),
     scrollRef: { current: null },
+    keyBasis: "transposed",
   },
   isLive: false,
   isSourceOpen: true,
@@ -134,5 +139,15 @@ export const Transposing: Story = {
       afterChords: ["D", "A", "Bm", "G"],
       semitones: 2,
     },
+  },
+};
+
+/** A song carrying an offset, printed in its original key. */
+export const OriginalKey: Story = {
+  args: {
+    ...defaultArgs,
+    toolbar: { ...defaultArgs.toolbar, isTransposed: true, keyBasis: "original" },
+    preview: { ...defaultArgs.preview, song: { ...exampleSong, transpose: 2 }, keyBasis: "original" },
+    live: { ...defaultArgs.live, song: { ...exampleSong, transpose: 2 }, keyBasis: "original" },
   },
 };

@@ -1,6 +1,10 @@
 import type { CSSProperties, ReactElement } from "react";
 import { useMemo } from "react";
+import type { KeyBasis } from "~/core/song-print/KeyBasis";
+import { DEFAULT_KEY_BASIS } from "~/core/song-print/KeyBasis";
+import { expandLines } from "~/core/song-print/LineTags";
 import { parseLine } from "~/core/song-print/ParseLine";
+import { transposeView } from "~/core/song-print/SongTranspose";
 import type { Section, Segment, Song } from "~/core/song-print/SongTypes";
 import { transposeChord } from "~/core/song-print/TransposeChord";
 
@@ -10,16 +14,21 @@ interface PreparedSection {
   lines: Segment[][];
 }
 
-/** Bare chord rows become a single chord-only line, same as on the sheet. */
+/**
+ * Bare chord rows become a single chord-only line, same as on the sheet.
+ *
+ * `[bl]` still spaces lines apart here, but `[bp]` is dropped rather than
+ * honoured — the stage scrolls, so it has no pages to break onto.
+ */
 function prepare(sections: Section[], semitones: number): PreparedSection[] {
   return sections.map((s) => {
     const lines: Segment[][] = [];
     if (s.chords?.length) {
       lines.push(s.chords.map((c) => ({ chord: transposeChord(c, semitones), text: "" })));
     }
-    for (const line of s.lines ?? []) {
+    for (const line of expandLines(s.lines ?? []).lines) {
       lines.push(
-        parseLine(line).map((seg) => (seg.chord ? { ...seg, chord: transposeChord(seg.chord, semitones) } : seg))
+        parseLine(line.text).map((seg) => (seg.chord ? { ...seg, chord: transposeChord(seg.chord, semitones) } : seg))
       );
     }
     return { name: s.name, note: s.note, lines };
@@ -31,6 +40,8 @@ export interface SongStageProps {
   /** Lyric size in px — chords are drawn proportionally smaller. */
   fontSize: number;
   columns?: number;
+  /** Which key the chords are written in when the song carries a transpose offset. */
+  keyBasis?: KeyBasis;
 }
 
 /**
@@ -38,9 +49,9 @@ export interface SongStageProps {
  * lyrics at whatever size the room needs. Unlike `SongDoc` nothing is measured
  * or packed — the stage scrolls instead of paginating.
  */
-export function SongStage({ song, fontSize, columns = 1 }: SongStageProps): ReactElement {
-  const semitones = Math.round(song.transpose ?? 0);
-  const sections = useMemo(() => prepare(song.sections ?? [], semitones), [song.sections, semitones]);
+export function SongStage({ song, fontSize, columns = 1, keyBasis = DEFAULT_KEY_BASIS }: SongStageProps): ReactElement {
+  const { shift } = transposeView(song, keyBasis);
+  const sections = useMemo(() => prepare(song.sections ?? [], shift), [song.sections, shift]);
 
   const chordSize = fontSize * 0.62;
   const lyricStyle: CSSProperties = { fontSize: `${fontSize}px`, lineHeight: 1.42 };

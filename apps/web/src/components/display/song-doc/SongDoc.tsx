@@ -5,6 +5,9 @@ import "./SongDoc.css";
 import { ChordLine, ChordRow } from "./ChordLine";
 import type { ChordStyle } from "~/core/song-print/ChordStyle";
 import { DEFAULT_CHORD_STYLE } from "~/core/song-print/ChordStyle";
+import type { KeyBasis } from "~/core/song-print/KeyBasis";
+import { DEFAULT_KEY_BASIS } from "~/core/song-print/KeyBasis";
+import { expandLines } from "~/core/song-print/LineTags";
 import {
   COLUMN_GUTTER,
   PAGE_PAD_BOTTOM,
@@ -17,18 +20,29 @@ import {
 } from "~/core/song-print/PageFormats";
 import { buildColumns, chunkPages } from "~/core/song-print/Paginate";
 import { parseLine } from "~/core/song-print/ParseLine";
+import type { TransposeView } from "~/core/song-print/SongTranspose";
+import { transposeView } from "~/core/song-print/SongTranspose";
 import type { Section, Segment, Song } from "~/core/song-print/SongTypes";
 import { transposeChord } from "~/core/song-print/TransposeChord";
 
-/** A section with its lines already parsed and transposed. */
+/** One drawn line, with the forced break `[bp]` put in front of it. */
+interface PreparedLine {
+  segments: Segment[];
+  /** Starts a new page, whatever the column packing would have done. */
+  pageBreak?: boolean;
+}
+
+/** A section with its lines already expanded, parsed and transposed. */
 interface PreparedSection {
   name?: string;
   note?: string;
   chords?: string[];
-  lines: Segment[][];
+  lines: PreparedLine[];
+  /** A `[bp]` after the section's last line: the next section starts a page. */
+  breakAfter: boolean;
 }
 
-/** A renderable slice of a section — the whole thing, or a page-split part. */
+/** A renderable slice of a section — the whole thing, or a split part. */
 interface Unit {
   section: number;
   from: number;
@@ -37,14 +51,21 @@ interface Unit {
 }
 
 function prepare(sections: Section[], semitones: number): PreparedSection[] {
-  return sections.map((s) => ({
-    name: s.name,
-    note: s.note,
-    chords: s.chords?.map((c) => transposeChord(c, semitones)),
-    lines: (s.lines ?? []).map((l) =>
-      parseLine(l).map((seg) => (seg.chord ? { ...seg, chord: transposeChord(seg.chord, semitones) } : seg))
-    ),
-  }));
+  return sections.map((s) => {
+    const expanded = expandLines(s.lines ?? []);
+    return {
+      name: s.name,
+      note: s.note,
+      chords: s.chords?.map((c) => transposeChord(c, semitones)),
+      lines: expanded.lines.map((line) => ({
+        ...(line.pageBreak ? { pageBreak: true } : {}),
+        segments: parseLine(line.text).map((seg) =>
+          seg.chord ? { ...seg, chord: transposeChord(seg.chord, semitones) } : seg
+        ),
+      })),
+      breakAfter: expanded.breakAfter,
+    };
+  });
 }
 
 interface SectionHeadProps {
@@ -78,8 +99,8 @@ function SectionBody({ s, from, to }: SectionBodyProps): ReactElement {
   return (
     <>
       {s.chords && s.chords.length > 0 && from === 0 && <ChordRow chords={s.chords} />}
-      {s.lines.slice(from, to).map((segs, i) => (
-        <ChordLine segments={segs} key={from + i} />
+      {s.lines.slice(from, to).map((line, i) => (
+        <ChordLine segments={line.segments} key={from + i} />
       ))}
     </>
   );
@@ -92,17 +113,18 @@ interface MetaChip {
 
 interface SongHeaderProps {
   song: Song;
-  semitones: number;
+  view: TransposeView;
 }
 
 /** Placeholder for a value the song does not carry. */
 const NO_VALUE = "—";
 
-function SongHeader({ song, semitones }: SongHeaderProps): ReactElement | null {
+function SongHeader({ song, view }: SongHeaderProps): ReactElement | null {
   const intl = useIntl();
 
-  const shifted = song.key && semitones ? transposeChord(song.key, semitones) : song.key;
-  const hasMeta = !!(song.key ?? song.capo ?? song.tempo);
+  // Printing the original key means the sheet has to say both where it is
+  // written and where the band is, so it gains a chip either way.
+  const hasMeta = !!(song.key ?? song.capo ?? song.tempo) || view.isOriginal;
 
   // The three chips travel together: a player scanning the top of the sheet
   // reads them in the same place every time, dash or no dash.
@@ -113,8 +135,13 @@ function SongHeader({ song, semitones }: SongHeaderProps): ReactElement | null {
         defaultMessage: "Key",
         id: "kEhm3r",
       }),
-      // A pending offset shows both keys, so the sheet says what it is played in.
-      value: !song.key ? NO_VALUE : semitones && shifted !== song.key ? `${song.key} → ${shifted}` : (shifted ?? ""),
+      // Only the key being played — the sheet is read, not diffed — unless the
+      // chords stayed in the original key, where the pair is the whole point.
+      value: !view.writtenKey
+        ? NO_VALUE
+        : view.isOriginal
+          ? `${view.writtenKey} → ${view.soundingKey}`
+          : view.writtenKey,
     },
     {
       label: intl.formatMessage({
@@ -134,14 +161,43 @@ function SongHeader({ song, semitones }: SongHeaderProps): ReactElement | null {
     },
   ];
 
-  if (!song.title && !song.artist && !hasMeta) return null;
+  if (view.isOriginal) {
+    chips.push({
+      label: intl.formatMessage({
+        description: "SongDoc: sheet meta chip label - semitones to transpose by while playing",
+        defaultMessage: "Transpose",
+        id: "z8+3KF",
+      }),
+      value: view.offset > 0 ? `+${view.offset}` : String(view.offset),
+    });
+  }
+
+  if (!song.title && !song.artist && !hasMeta && song.order === undefined) return null;
 
   return (
     <>
       <div className="sp-header">
-        <div className="sp-titles">
-          {song.title && <h1 className="sp-title">{song.title}</h1>}
-          {song.artist && <div className="sp-artist">{song.artist}</div>}
+        <div className="sp-heading">
+          {/* Setlist position, sized to be found at a glance on a music stand. */}
+          {song.order !== undefined && (
+            <div
+              className="sp-order"
+              aria-label={intl.formatMessage(
+                {
+                  description: "SongDoc: sheet header - position of the song in the setlist",
+                  defaultMessage: "Setlist position {order}",
+                  id: "/WxKpH",
+                },
+                { order: song.order }
+              )}
+            >
+              {song.order}
+            </div>
+          )}
+          <div className="sp-titles">
+            {song.title && <h1 className="sp-title">{song.title}</h1>}
+            {song.artist && <div className="sp-artist">{song.artist}</div>}
+          </div>
         </div>
         {hasMeta && (
           <div className="sp-meta">
@@ -161,15 +217,15 @@ function SongHeader({ song, semitones }: SongHeaderProps): ReactElement | null {
 
 interface SongFootProps {
   song: Song;
-  semitones: number;
+  view: TransposeView;
   page: number;
   total: number;
 }
 
-function SongFoot({ song, semitones, page, total }: SongFootProps): ReactElement {
+function SongFoot({ song, view, page, total }: SongFootProps): ReactElement {
   const intl = useIntl();
 
-  const key = song.key ? (semitones ? transposeChord(song.key, semitones) : song.key) : "";
+  const key = view.isOriginal ? `${view.writtenKey} → ${view.soundingKey}` : view.writtenKey;
   const parts = [song.title, song.artist].filter(Boolean);
   if (key) {
     parts.push(
@@ -208,6 +264,8 @@ function SongFoot({ song, semitones, page, total }: SongFootProps): ReactElement
 export interface SongDocProps {
   song: Song;
   chordStyle?: ChordStyle;
+  /** Which key the chords are written in when the song carries a transpose offset. */
+  keyBasis?: KeyBasis;
 }
 
 /**
@@ -215,10 +273,14 @@ export interface SongDocProps {
  * paginate, then draws the resulting pages. See SongDoc.css for the pixel
  * contract this measurement pass depends on.
  */
-export function SongDoc({ song, chordStyle = DEFAULT_CHORD_STYLE }: SongDocProps): ReactElement {
+export function SongDoc({
+  song,
+  chordStyle = DEFAULT_CHORD_STYLE,
+  keyBasis = DEFAULT_KEY_BASIS,
+}: SongDocProps): ReactElement {
   const page = getPageSpec(song.page);
-  const semitones = Math.round(song.transpose ?? 0);
-  const sections = useMemo(() => prepare(song.sections ?? [], semitones), [song.sections, semitones]);
+  const view = transposeView(song, keyBasis);
+  const sections = useMemo(() => prepare(song.sections ?? [], view.shift), [song.sections, view.shift]);
 
   const colW = columnWidth(page);
   const colH = columnHeight(page);
@@ -228,8 +290,9 @@ export function SongDoc({ song, chordStyle = DEFAULT_CHORD_STYLE }: SongDocProps
   const [layout, setLayout] = useState<{ sig: string; pages: number[][][]; units: Unit[] } | null>(null);
 
   // Chord style is part of the signature: dropping the chip padding changes
-  // segment widths, and so how many lines a section wraps to.
-  const sig = JSON.stringify({ song, colW, colH, chordStyle });
+  // segment widths, and so how many lines a section wraps to. So is the key
+  // basis — it rewrites every chord and adds a header chip.
+  const sig = JSON.stringify({ song, colW, colH, chordStyle, keyBasis });
 
   useLayoutEffect(() => {
     const root = measRef.current;
@@ -248,7 +311,9 @@ export function SongDoc({ song, chordStyle = DEFAULT_CHORD_STYLE }: SongDocProps
 
     const songHeaderH = heightOf(headRef.current);
 
-    // Per-section header, line and total heights, measured at final column width.
+    // Per-section header, line and total heights, measured at final column
+    // width. [data-line] stays aligned 1:1 with the prepared lines — a bare
+    // chord row is part of the section's chrome, not a line a split can land on.
     const headH: number[] = [];
     const lineH: number[][] = [];
     const chromeH: number[] = [];
@@ -267,38 +332,66 @@ export function SongDoc({ song, chordStyle = DEFAULT_CHORD_STYLE }: SongDocProps
       chromeH.push(Math.max(0, total - h - ls.reduce((a, b) => a + b, 0)));
     });
 
-    // A section is atomic unless it cannot fit a column on its own, in which
-    // case it splits at line boundaries and repeats its header as "cont.".
+    // A section is atomic unless a [bp] cuts it, or it cannot fit a column on
+    // its own — then it splits at line boundaries and repeats its header as
+    // "cont.".
     const units: Unit[] = [];
     const heights: number[] = [];
+    const pageBreaks = new Set<number>();
+
+    // A [bp] with no line after it in its own section breaks before the next.
+    let carried = false;
 
     sections.forEach((s, i) => {
       const lines = lineH[i] ?? [];
       const head = headH[i] ?? 0;
       const chrome = chromeH[i] ?? 0;
-      const full = head + chrome + lines.reduce((a, b) => a + b, 0);
       const budget = colH - head - chrome;
 
-      if (full <= colH || lines.length <= 1 || budget <= 0) {
-        units.push({ section: i, from: 0, to: s.lines.length, continued: false });
-        heights.push(full);
+      // A section reduced to nothing but a [bp] draws no unit, so pass its
+      // break on to the section that follows instead of losing it.
+      if (s.lines.length === 0 && !s.name && !s.note && !s.chords?.length) {
+        carried = carried || s.breakAfter;
         return;
       }
 
-      let from = 0;
-      let used = 0;
-      for (let j = 0; j < lines.length; j++) {
-        const lh = lines[j] ?? 0;
-        if (used + lh > budget && j > from) {
-          units.push({ section: i, from, to: j, continued: from > 0 });
-          heights.push(head + chrome + used);
-          from = j;
-          used = 0;
-        }
-        used += lh;
+      function push(from: number, to: number, used: number, forced: boolean): void {
+        if (forced && units.length > 0) pageBreaks.add(units.length);
+        units.push({ section: i, from, to, continued: from > 0 });
+        heights.push(head + chrome + used);
       }
-      units.push({ section: i, from, to: lines.length, continued: from > 0 });
-      heights.push(head + chrome + used);
+
+      // Cut points: the section start, then every line carrying a [bp].
+      const cuts = [0, ...s.lines.flatMap((line, j) => (j > 0 && line.pageBreak ? [j] : [])), s.lines.length];
+
+      for (let c = 0; c < cuts.length - 1; c++) {
+        const start = cuts[c] ?? 0;
+        const end = cuts[c + 1] ?? start;
+        // The first chunk breaks on a leading [bp] or one carried over; every
+        // later chunk exists only because a [bp] cut it.
+        const forced = c > 0 || carried || !!s.lines[0]?.pageBreak;
+        const span = lines.slice(start, end).reduce((a, b) => a + b, 0);
+
+        if (head + chrome + span <= colH || end - start <= 1 || budget <= 0) {
+          push(start, end, span, forced);
+          continue;
+        }
+
+        let from = start;
+        let used = 0;
+        for (let j = start; j < end; j++) {
+          const lh = lines[j] ?? 0;
+          if (used + lh > budget && j > from) {
+            push(from, j, used, forced && from === start);
+            from = j;
+            used = 0;
+          }
+          used += lh;
+        }
+        push(from, end, used, forced && from === start);
+      }
+
+      carried = s.breakAfter;
     });
 
     // Page one loses height to the song header; later pages get the full column.
@@ -307,7 +400,10 @@ export function SongDoc({ song, chordStyle = DEFAULT_CHORD_STYLE }: SongDocProps
       return columnIndex < firstPageColumns ? colH - songHeaderH : colH;
     }
 
-    const columns = buildColumns(heights, heightFor, SECTION_GAP);
+    const columns = buildColumns(heights, heightFor, SECTION_GAP, {
+      pageBreak: pageBreaks,
+      columnsPerPage: page.columns,
+    });
     setLayout({ sig, pages: chunkPages(columns, page.columns), units });
     // `sig` already encodes every reactive value this effect reads (song, colW,
     // colH), but list them explicitly too so the effect stays compiler-safe.
@@ -342,7 +438,7 @@ export function SongDoc({ song, chordStyle = DEFAULT_CHORD_STYLE }: SongDocProps
   const measurer = (
     <div className="sp-measure" ref={measRef} style={{ width: colW + "px" }}>
       <div ref={headRef}>
-        <SongHeader song={song} semitones={semitones} />
+        <SongHeader song={song} view={view} />
       </div>
       {sections.map((s, i) => (
         <div className="sp-section" data-sec={i} key={i}>
@@ -350,13 +446,13 @@ export function SongDoc({ song, chordStyle = DEFAULT_CHORD_STYLE }: SongDocProps
             <SectionHead name={s.name} note={s.note} />
           </div>
           {s.chords && s.chords.length > 0 && (
-            <div data-line="">
+            <div data-chords="">
               <ChordRow chords={s.chords} />
             </div>
           )}
-          {s.lines.map((segs, j) => (
+          {s.lines.map((line, j) => (
             <div data-line="" key={j}>
-              <ChordLine segments={segs} />
+              <ChordLine segments={line.segments} />
             </div>
           ))}
         </div>
@@ -375,7 +471,7 @@ export function SongDoc({ song, chordStyle = DEFAULT_CHORD_STYLE }: SongDocProps
       {measurer}
       {pages.map((cols, pi) => (
         <div className="sp-page" key={pi}>
-          {pi === 0 && <SongHeader song={song} semitones={semitones} />}
+          {pi === 0 && <SongHeader song={song} view={view} />}
           <div className="sp-cols" data-columns={page.columns}>
             {cols.map((colUnits, ci) => (
               <div className="sp-col" key={ci}>
@@ -386,7 +482,7 @@ export function SongDoc({ song, chordStyle = DEFAULT_CHORD_STYLE }: SongDocProps
               </div>
             ))}
           </div>
-          <SongFoot song={song} semitones={semitones} page={pi + 1} total={total} />
+          <SongFoot song={song} view={view} page={pi + 1} total={total} />
         </div>
       ))}
     </div>

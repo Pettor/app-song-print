@@ -4,7 +4,8 @@ import { Button } from "@heroui/react";
 import clsx from "clsx";
 import { useIntl } from "react-intl";
 import { SongStage } from "~/components/display/song-stage/SongStage";
-import { effectiveKey } from "~/core/song-print/SongTranspose";
+import type { KeyBasis } from "~/core/song-print/KeyBasis";
+import { transposeView } from "~/core/song-print/SongTranspose";
 import type { Song } from "~/core/song-print/SongTypes";
 
 export interface SongPrintLiveOverlayProps {
@@ -16,6 +17,8 @@ export interface SongPrintLiveOverlayProps {
   onToggleScroll: () => void;
   onExit: () => void;
   scrollRef: RefObject<HTMLDivElement | null>;
+  /** Which key the chords are written in when the song carries a transpose offset. */
+  keyBasis: KeyBasis;
 }
 
 const MIN_FONT = 18;
@@ -37,9 +40,11 @@ export function SongPrintLiveOverlay({
   onToggleScroll,
   onExit,
   scrollRef,
+  keyBasis,
 }: SongPrintLiveOverlayProps): ReactElement {
   const intl = useIntl();
 
+  const view = transposeView(song, keyBasis);
   const meta = [
     intl.formatMessage(
       {
@@ -47,9 +52,23 @@ export function SongPrintLiveOverlay({
         defaultMessage: "Key {key}",
         id: "/Izuum",
       },
-      { key: effectiveKey(song) }
+      // Playing the original key against a transposed band: name both, the way
+      // the printed sheet does.
+      { key: view.isOriginal ? `${view.writtenKey} → ${view.soundingKey}` : view.writtenKey || "C" }
     ),
   ];
+  if (view.isOriginal) {
+    meta.push(
+      intl.formatMessage(
+        {
+          description: "SongPrintLiveOverlay: meta - semitones to transpose by while playing",
+          defaultMessage: "Transpose {offset}",
+          id: "qZrnna",
+        },
+        { offset: view.offset > 0 ? `+${view.offset}` : String(view.offset) }
+      )
+    );
+  }
   if (song.tempo) {
     meta.push(
       intl.formatMessage(
@@ -163,7 +182,7 @@ export function SongPrintLiveOverlay({
         })}
         className="flex-1 overflow-auto px-11 pt-8 pb-[60vh]"
       >
-        <SongStage song={song} fontSize={fontSize} columns={columns} />
+        <SongStage song={song} fontSize={fontSize} columns={columns} keyBasis={keyBasis} />
       </div>
     </div>
   );

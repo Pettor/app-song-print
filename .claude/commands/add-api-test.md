@@ -15,6 +15,7 @@ API tests in this project use **Vitest** with a Node.js environment. Tests valid
 ### Test File Location
 
 Tests are placed next to the file they test:
+
 - `packages/api/src/Api/<EndpointName>/Schema.test.ts` — tests for Zod schemas
 - `packages/api/src/Api/<EndpointName>/Convert.test.ts` — tests for DTO converters
 - `packages/api/src/Service/<FileName>.test.ts` — tests for service utilities
@@ -121,13 +122,13 @@ describe("myUtilityFunction", () => {
 
 ### What to Test for Each File Type
 
-| File Type | What to Test |
-|---|---|
-| `Schema.ts` | Valid parse, missing fields, wrong types, null, extra field stripping |
-| `Convert.ts` | Field mapping, output shape, edge case values (empty strings, zeros) |
-| `Post.ts` / `Get.ts` | Skip (these depend on Web Worker — tested via E2E instead) |
-| `Classes.ts` | Skip (type-only files have no runtime behavior) |
-| Service utilities | Return values, error conditions, type guards, edge cases |
+| File Type            | What to Test                                                          |
+| -------------------- | --------------------------------------------------------------------- |
+| `Schema.ts`          | Valid parse, missing fields, wrong types, null, extra field stripping |
+| `Convert.ts`         | Field mapping, output shape, edge case values (empty strings, zeros)  |
+| `Post.ts` / `Get.ts` | Skip (these depend on Web Worker — tested via E2E instead)            |
+| `Classes.ts`         | Skip (type-only files have no runtime behavior)                       |
+| Service utilities    | Return values, error conditions, type guards, edge cases              |
 
 ### After Creating Tests
 

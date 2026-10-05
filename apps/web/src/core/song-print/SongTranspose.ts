@@ -1,3 +1,5 @@
+import type { KeyBasis } from "./KeyBasis";
+import { isLayoutTag } from "./LineTags";
 import { parseLine } from "./ParseLine";
 import type { Section, Song } from "./SongTypes";
 import { transposeChord } from "./TransposeChord";
@@ -50,7 +52,8 @@ export function distinctChords(song: Song): string[] {
   const out: string[] = [];
 
   function add(chord: string | undefined): void {
-    if (!chord || seen.has(chord)) return;
+    // [bl] and [bp] share the chord brackets but are layout, not music.
+    if (!chord || isLayoutTag(chord) || seen.has(chord)) return;
     seen.add(chord);
     out.push(chord);
   }
@@ -84,6 +87,45 @@ export function effectiveKey(song: Song): string {
   const offset = Math.round(song.transpose ?? 0);
   const key = song.key ?? "C";
   return offset === 0 ? key : transposeChord(key, offset);
+}
+
+/** How a sheet resolves its live transpose offset for rendering. */
+export interface TransposeView {
+  /** Semitones the chords on the page are shifted by — 0 when printing the original key. */
+  shift: number;
+  /** The offset the song carries, signed, as the sheet should report it. */
+  offset: number;
+  /** The key the chords on the page are written in, or "" when the song states none. */
+  writtenKey: string;
+  /** The key the band is in: the song's key plus the offset, or "" when it states none. */
+  soundingKey: string;
+  /**
+   * Whether the chords were left in the original key with an offset still in
+   * effect — the one case where the sheet reports two different keys.
+   */
+  isOriginal: boolean;
+}
+
+/**
+ * Resolve what a sheet writes and what it sounds like, given a printing basis.
+ *
+ * With `transposed` the offset is applied and there is one key to report. With
+ * `original` the chords stay put and the two keys differ, so the sheet can say
+ * "these chords, that key" — the case for a player transposing by hand.
+ */
+export function transposeView(song: Song, basis: KeyBasis): TransposeView {
+  const offset = Math.round(song.transpose ?? 0);
+  const key = song.key ?? "";
+  const shifted = key && offset ? transposeChord(key, offset) : key;
+  const isOriginal = basis === "original" && offset !== 0;
+
+  return {
+    shift: isOriginal ? 0 : offset,
+    offset,
+    writtenKey: isOriginal ? key : shifted,
+    soundingKey: shifted,
+    isOriginal,
+  };
 }
 
 /**

@@ -63,11 +63,11 @@ packages/api/src/
 
 Every endpoint under `Api/` follows the same file set:
 
-| File | Purpose |
-| --- | --- |
-| `Classes.ts` | Domain types and query keys (`QUERY_KEY_XXX`) |
-| `Schema.ts` | Zod schema + inferred `XxxDto` type |
-| `Convert.ts` | `xxxConvertFromDto(dto) → domain` |
+| File                 | Purpose                                                                      |
+| -------------------- | ---------------------------------------------------------------------------- |
+| `Classes.ts`         | Domain types and query keys (`QUERY_KEY_XXX`)                                |
+| `Schema.ts`          | Zod schema + inferred `XxxDto` type                                          |
+| `Convert.ts`         | `xxxConvertFromDto(dto) → domain`                                            |
 | `Get.ts` / `Post.ts` | Service function + React Query hook (`useFetchXxxQuery`, `usePostXxxMutate`) |
 
 ### Security note — `TokenStorage`
@@ -105,34 +105,34 @@ packages/react/src/
 
 **Browser**
 
-| Hook | Signature | Purpose |
-| --- | --- | --- |
-| `useCopyToClipboard` | `() → { copiedText, copy(text) }` | Clipboard API wrapper; `copy` returns `true` on success |
-| `useDocumentTitle` | `(title: string) → void` | Sets `document.title` whenever `title` changes |
-| `useLocalStorage` | `<T>(key, initialValue) → [T, setter]` | `useState` backed by `localStorage`; syncs across tabs via the `storage` event |
-| `useMediaQuery` | `(query: string) → boolean` | Tracks a CSS media query using native `matchMedia`; reactive to viewport changes |
-| `useBreakpoint` | `(size: "sm"\|"md"\|"lg"\|"xl"\|"2xl") → boolean` | Tailwind-breakpoint shorthand over `useMediaQuery` |
+| Hook                 | Signature                                         | Purpose                                                                          |
+| -------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `useCopyToClipboard` | `() → { copiedText, copy(text) }`                 | Clipboard API wrapper; `copy` returns `true` on success                          |
+| `useDocumentTitle`   | `(title: string) → void`                          | Sets `document.title` whenever `title` changes                                   |
+| `useLocalStorage`    | `<T>(key, initialValue) → [T, setter]`            | `useState` backed by `localStorage`; syncs across tabs via the `storage` event   |
+| `useMediaQuery`      | `(query: string) → boolean`                       | Tracks a CSS media query using native `matchMedia`; reactive to viewport changes |
+| `useBreakpoint`      | `(size: "sm"\|"md"\|"lg"\|"xl"\|"2xl") → boolean` | Tailwind-breakpoint shorthand over `useMediaQuery`                               |
 
 **Dom**
 
-| Hook | Signature | Purpose |
-| --- | --- | --- |
-| `useClickOutside` | `(ref, handler) → void` | Fires `handler` on `mousedown`/`touchstart` outside the ref'd element |
-| `useEventListener` | `(target, event, handler, options?) → void` | Attaches a DOM event listener with automatic cleanup; stable via `useRef` |
-| `useIntersectionObserver` | `(ref, options?) → IntersectionObserverEntry \| undefined` | Tracks when an element enters or exits the viewport |
+| Hook                      | Signature                                                  | Purpose                                                                   |
+| ------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `useClickOutside`         | `(ref, handler) → void`                                    | Fires `handler` on `mousedown`/`touchstart` outside the ref'd element     |
+| `useEventListener`        | `(target, event, handler, options?) → void`                | Attaches a DOM event listener with automatic cleanup; stable via `useRef` |
+| `useIntersectionObserver` | `(ref, options?) → IntersectionObserverEntry \| undefined` | Tracks when an element enters or exits the viewport                       |
 
 **State**
 
-| Hook | Signature | Purpose |
-| --- | --- | --- |
+| Hook          | Signature               | Purpose                                                               |
+| ------------- | ----------------------- | --------------------------------------------------------------------- |
 | `useDebounce` | `<T>(value, delay) → T` | Returns a debounced copy of `value`; resets the timer on every change |
 
 **Lifecycle**
 
-| Hook | Signature | Purpose |
-| --- | --- | --- |
-| `useIsFirstRender` | `() → boolean` | Returns `true` only on the first render of a component |
-| `useIsMounted` | `() → () => boolean` | Returns a getter that is `true` while the component is mounted; safe for async callbacks |
+| Hook               | Signature            | Purpose                                                                                  |
+| ------------------ | -------------------- | ---------------------------------------------------------------------------------------- |
+| `useIsFirstRender` | `() → boolean`       | Returns `true` only on the first render of a component                                   |
+| `useIsMounted`     | `() → () => boolean` | Returns a getter that is `true` while the component is mounted; safe for async callbacks |
 
 ## `@package/ui`
 
@@ -193,20 +193,20 @@ Exports:
 
 Each `configs/*` package is a small shared config used by apps and other packages:
 
-| Package | Purpose |
-| --- | --- |
-| `@config/eslint` | Base ESLint configs (root, React, Node) |
-| `@config/tailwind` | Shared Tailwind config including the design tokens palette |
-| `@config/typescript` | `tsconfig` bases (`base.json`, `react.json`, `node.json`) |
-| `@config/vite` | Vite config factories (web, library, storybook) |
+| Package              | Purpose                                                    |
+| -------------------- | ---------------------------------------------------------- |
+| `@config/eslint`     | Base ESLint configs (root, React, Node)                    |
+| `@config/tailwind`   | Shared Tailwind config including the design tokens palette |
+| `@config/typescript` | `tsconfig` bases (`base.json`, `react.json`, `node.json`)  |
+| `@config/vite`       | Vite config factories (web, library, storybook)            |
 
 ## Apps at a glance
 
-| App | Stack | Entry | Port |
-| --- | --- | --- | --- |
-| `apps/web` | React 19, Vite 8, Tailwind 4, HeroUI v3, TanStack Router | `src/main.tsx` | 5235 (HTTPS) |
-| `apps/storybook` | Storybook 10 + Vite builder | `main.ts` | 9058 |
-| `apps/e2e` | Playwright 1.58, Chromium | `src/specs/*.spec.ts` | — (runs against 5173) |
-| `apps/mock` | Mocks Server 4.1 | `mocks.config.js` | 3100 |
+| App              | Stack                                                    | Entry                 | Port                  |
+| ---------------- | -------------------------------------------------------- | --------------------- | --------------------- |
+| `apps/web`       | React 19, Vite 8, Tailwind 4, HeroUI v3, TanStack Router | `src/main.tsx`        | 5235 (HTTPS)          |
+| `apps/storybook` | Storybook 10 + Vite builder                              | `main.ts`             | 9058                  |
+| `apps/e2e`       | Playwright 1.58, Chromium                                | `src/specs/*.spec.ts` | — (runs against 5173) |
+| `apps/mock`      | Mocks Server 4.1                                         | `mocks.config.js`     | 3100                  |
 
 For app-specific architecture, see [architecture.md](./architecture.md).

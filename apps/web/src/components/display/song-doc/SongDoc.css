@@ -57,8 +57,33 @@
   justify-content: space-between;
   gap: 24px;
 }
+.sp-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
 .sp-titles {
   min-width: 0;
+}
+
+/* Setlist position. Large and solid so the right sheet can be found by number
+   in a stack of them, without competing with the title for the eye. */
+.sp-order {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  border-radius: 9px;
+  background: var(--accent, #2f6fdd);
+  color: #fff;
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 .sp-title {
   margin: 0;
