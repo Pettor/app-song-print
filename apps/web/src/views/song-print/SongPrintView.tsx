@@ -2,6 +2,8 @@ import type { ReactElement } from "react";
 import { useIntl } from "react-intl";
 import { SongPrintEditorPanel } from "./SongPrintEditorPanel";
 import type { SongPrintEditorPanelProps } from "./SongPrintEditorPanel";
+import { SongPrintExportStage } from "./SongPrintExportStage";
+import type { SongPrintExportStageProps } from "./SongPrintExportStage";
 import { SongPrintLiveOverlay } from "./SongPrintLiveOverlay";
 import type { SongPrintLiveOverlayProps } from "./SongPrintLiveOverlay";
 import { SongPrintPreviewPanel } from "./SongPrintPreviewPanel";
@@ -15,6 +17,7 @@ export interface SongPrintViewProps {
   toolbar: SongPrintToolbarProps;
   editor: SongPrintEditorPanelProps;
   preview: SongPrintPreviewPanelProps;
+  exportStage: SongPrintExportStageProps;
   transpose: SongPrintTransposeModalProps;
   live: SongPrintLiveOverlayProps;
   isLive: boolean;
@@ -27,6 +30,7 @@ export function SongPrintView({
   toolbar,
   editor,
   preview,
+  exportStage,
   transpose,
   live,
   isLive,
@@ -67,6 +71,7 @@ export function SongPrintView({
       </div>
       <SongPrintTransposeModal {...transpose} />
       {isLive && <SongPrintLiveOverlay {...live} />}
+      <SongPrintExportStage {...exportStage} />
     </div>
   );
 }

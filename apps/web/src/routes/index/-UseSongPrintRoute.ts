@@ -1,6 +1,7 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { useIntl } from "react-intl";
+import { useSongCatalogExport } from "./-UseSongCatalogExport";
 import { useSongEditorState } from "./-UseSongEditorState";
 import { useSongLiveMode } from "./-UseSongLiveMode";
 import { useSongPdfExport } from "./-UseSongPdfExport";
@@ -49,6 +50,14 @@ export function useSongPrintRoute(): SongPrintViewProps {
   const preview = useSongPreviewScale(page.width);
   const pdfExport = useSongPdfExport(editor.song);
   const live = useSongLiveMode();
+
+  // The open song is exported as it stands in the editor, so a whole-library
+  // export never prints a stale copy of what is on screen.
+  const catalog = useMemo(
+    () => SONGS.map((p) => (p.id && p.id === presetId ? { ...p, data: editor.song } : p)),
+    [presetId, editor.song]
+  );
+  const catalogExport = useSongCatalogExport(catalog);
 
   const transpose = useSongTranspose({ song: editor.song, onApply: editor.setSong });
 
@@ -206,6 +215,9 @@ export function useSongPrintRoute(): SongPrintViewProps {
       onToggleTheme: () => setThemeMode(resolvedTheme === "dark" ? "light" : "dark"),
       onExportPdf: pdfExport.exportPdf,
       isExporting: pdfExport.isExporting,
+      onExportAll: catalogExport.exportAll,
+      isExportingAll: catalogExport.isExporting,
+      exportedSongs: catalogExport.exported,
     },
     editor: {
       fileName,
@@ -230,6 +242,13 @@ export function useSongPrintRoute(): SongPrintViewProps {
       keyBasis,
       scale: preview.scale,
       containerRef: preview.containerRef,
+    },
+    exportStage: {
+      song: catalogExport.stageSong,
+      songId: catalogExport.stageSongId,
+      chordStyle,
+      keyBasis,
+      containerRef: catalogExport.stageRef,
     },
     transpose: transpose.modal,
     live: {

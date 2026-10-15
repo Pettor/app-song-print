@@ -466,7 +466,9 @@ export function SongDoc({
   const total = pages.length;
 
   return (
-    <div className="sp-doc" style={docStyle} data-chord-style={chordStyle}>
+    // `data-measured` appears once the drawn pages match the current song:
+    // what an off-screen capture waits for before photographing the sheet.
+    <div className="sp-doc" style={docStyle} data-chord-style={chordStyle} data-measured={current ? "" : undefined}>
       {measurer}
       {pages.map((cols, pi) => (
         <div className="sp-page" key={pi}>

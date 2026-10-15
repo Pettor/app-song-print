@@ -47,6 +47,8 @@ in its original key, for a player transposing by hand — see
 [Printing the original key](#printing-the-original-key).
 
 **Export.** One click to a paginated PDF at the song's page format, via `html2canvas` + `jsPDF`.
+**Export all** does the whole library in one go — every song, in setlist order, into a single
+`songs.pdf`, each at its own paper size and column count.
 
 **Files.** Open a song from disk and save it back, in the browser (File System Access API where
 available) — no server needed for that part.

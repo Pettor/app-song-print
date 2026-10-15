@@ -47,6 +47,9 @@ const defaultArgs = {
   onToggleTheme: fn(),
   onExportPdf: fn(),
   isExporting: false,
+  onExportAll: fn(),
+  isExportingAll: false,
+  exportedSongs: 0,
 } satisfies ComponentProps;
 
 export const Default: Story = {
@@ -71,6 +74,29 @@ export const DarkTheme: Story = {
 
 export const Exporting: Story = {
   args: { ...defaultArgs, isExporting: true },
+};
+
+/** The whole library going into one PDF, counting the songs off as it goes. */
+export const ExportingTheWholeLibrary: Story = {
+  args: { ...defaultArgs, isExportingAll: true, exportedSongs: 1 },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    await expect(canvas.getByRole("button", { name: /1 of 2/ })).toBeVisible();
+    // The single-sheet export stands down while the library is being drawn.
+    await expect(canvas.getByRole("button", { name: /Export PDF/ })).toBeDisabled();
+  },
+};
+
+export const ExportingTheWholeLibraryFromTheButton: Story = {
+  args: defaultArgs,
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+
+    await userEvent.click(canvas.getByRole("button", { name: "Export all" }));
+
+    await expect(args.onExportAll).toHaveBeenCalled();
+  },
 };
 
 export const OpenedFromFile: Story = {

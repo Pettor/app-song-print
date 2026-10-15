@@ -4,6 +4,7 @@ import {
   ComputerDesktopIcon,
   MoonIcon,
   PrinterIcon,
+  RectangleStackIcon,
   SunIcon,
   ViewColumnsIcon,
   WrenchScrewdriverIcon,
@@ -47,6 +48,11 @@ export interface SongPrintToolbarProps {
   onToggleTheme: () => void;
   onExportPdf: () => void;
   isExporting: boolean;
+  /** Export every song in the library as one PDF, not just the open one. */
+  onExportAll: () => void;
+  isExportingAll: boolean;
+  /** Songs captured so far, so a long catalog reports progress. */
+  exportedSongs: number;
 }
 
 /**
@@ -76,6 +82,9 @@ export function SongPrintToolbar({
   onToggleTheme,
   onExportPdf,
   isExporting,
+  onExportAll,
+  isExportingAll,
+  exportedSongs,
 }: SongPrintToolbarProps): ReactElement {
   const intl = useIntl();
   const [isToolsOpen, setIsToolsOpen] = useState(false);
@@ -337,7 +346,14 @@ export function SongPrintToolbar({
         </Tooltip.Content>
       </Tooltip>
 
-      <Button variant="primary" size="sm" className="flex-none" onPress={onExportPdf} isPending={isExporting}>
+      <Button
+        variant="primary"
+        size="sm"
+        className="flex-none"
+        onPress={onExportPdf}
+        isPending={isExporting}
+        isDisabled={isExportingAll}
+      >
         <PrinterIcon className="size-4" />
         {isExporting
           ? intl.formatMessage({
@@ -351,6 +367,46 @@ export function SongPrintToolbar({
               id: "WUAe1K",
             })}
       </Button>
+
+      {/* Only worth offering when there is a library to export. */}
+      {songs.length > 0 && (
+        <Tooltip>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="flex-none"
+            onPress={onExportAll}
+            isPending={isExportingAll}
+            isDisabled={isExporting}
+          >
+            <RectangleStackIcon className="size-4" />
+            {isExportingAll
+              ? intl.formatMessage(
+                  {
+                    description: "SongPrintToolbar: button - whole-library export progress",
+                    defaultMessage: "{exported} of {total}…",
+                    id: "6Twwt1",
+                  },
+                  { exported: exportedSongs, total: songs.length }
+                )
+              : intl.formatMessage({
+                  description: "SongPrintToolbar: button - export every song in the library",
+                  defaultMessage: "Export all",
+                  id: "VBq1D/",
+                })}
+          </Button>
+          <Tooltip.Content>
+            {intl.formatMessage(
+              {
+                description: "SongPrintToolbar: tooltip - what exporting the whole library does",
+                defaultMessage: "All {total} songs as one PDF, in setlist order",
+                id: "CvCmU0",
+              },
+              { total: songs.length }
+            )}
+          </Tooltip.Content>
+        </Tooltip>
+      )}
     </Toolbar>
   );
 }

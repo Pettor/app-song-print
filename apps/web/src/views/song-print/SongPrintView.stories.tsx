@@ -56,6 +56,9 @@ const defaultArgs = {
     onToggleTheme: fn(),
     onExportPdf: fn(),
     isExporting: false,
+    onExportAll: fn(),
+    isExportingAll: false,
+    exportedSongs: 0,
   },
   editor: {
     fileName: null,
@@ -79,6 +82,13 @@ const defaultArgs = {
     chordStyle: "chip",
     keyBasis: "transposed",
     scale: 1,
+    containerRef: { current: null },
+  },
+  exportStage: {
+    song: null,
+    songId: "",
+    chordStyle: "chip",
+    keyBasis: "transposed",
     containerRef: { current: null },
   },
   transpose: {
