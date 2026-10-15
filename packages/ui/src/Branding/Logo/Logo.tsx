@@ -1,5 +1,5 @@
 import type { ReactElement } from "react";
-import logoUrl from "../assets/template-512x512.svg";
+import logoUrl from "../assets/song-print-512x512.svg";
 
 export interface LogoProps {
   size: "small" | "medium" | "large";

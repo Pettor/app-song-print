@@ -5,7 +5,7 @@ import { dirname, resolve } from "node:path";
 const require = createRequire(import.meta.url);
 // Resolve the package root of @package/ui (main entry is src/index.ts, one level up → package root)
 const uiRoot = resolve(dirname(require.resolve("@package/ui")), "..");
-const svgPath = resolve(uiRoot, "src/Branding/assets/template-512x512.svg");
+const svgPath = resolve(uiRoot, "src/Branding/assets/song-print-512x512.svg");
 
 export default defineConfig({
   preset: {
@@ -15,9 +15,9 @@ export default defineConfig({
         [16, "favicon-16x16.png"],
         [32, "favicon-32x32.png"],
         [48, "favicon.ico"],
-        [180, "apple-touch-icon.png"],
       ],
     },
+    // Maskable and Apple icons come from the full-bleed variant (pwa-assets.full-bleed.config.ts)
     maskable: {
       sizes: [],
     },

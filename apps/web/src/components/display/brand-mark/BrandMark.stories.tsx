@@ -12,13 +12,9 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  args: { className: "text-accent" } satisfies ComponentProps,
+  args: {} satisfies ComponentProps,
 };
 
 export const Large: Story = {
-  args: { className: "text-accent size-16" } satisfies ComponentProps,
-};
-
-export const Inherited: Story = {
-  args: {},
+  args: { className: "size-16" } satisfies ComponentProps,
 };

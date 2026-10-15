@@ -29,6 +29,7 @@ export function createPWAConfig(options: PWAViteConfigOptions = {}): UserConfig 
     },
     includeAssets: [
       "favicon.ico",
+      "favicon.svg",
       "apple-touch-icon.png",
       "pwa-192x192.png",
       "pwa-512x512.png",
@@ -52,6 +53,12 @@ export function createPWAConfig(options: PWAViteConfigOptions = {}): UserConfig 
           sizes: "512x512",
           type: "image/png",
         },
+        {
+          src: "maskable-icon-512x512.png",
+          sizes: "512x512",
+          type: "image/png",
+          purpose: "maskable",
+        },
       ],
       screenshots: [
         {
@@ -70,7 +77,7 @@ export function createPWAConfig(options: PWAViteConfigOptions = {}): UserConfig 
         },
       ],
       short_name: manifest.shortName || "Song Print",
-      theme_color: manifest.themeColor || "#ffffff",
+      theme_color: manifest.themeColor || "#0485f7",
     },
     registerType: "autoUpdate",
     workbox: {

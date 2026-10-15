@@ -99,7 +99,7 @@ export function SongPrintToolbar({
   return (
     <Toolbar className="border-default-200 bg-content1/70 z-30 flex h-15 w-full flex-none items-center gap-3.5 overflow-x-auto border-b px-4 backdrop-blur-xl">
       <div className="border-default-200 flex h-8 flex-none items-center gap-2.5 border-r pr-3.5">
-        <BrandMark className="text-accent size-6 flex-none" />
+        <BrandMark className="size-7 flex-none" />
         <div className="flex flex-none flex-col leading-tight whitespace-nowrap">
           <span className="text-sm font-bold tracking-tight">
             {intl.formatMessage({
