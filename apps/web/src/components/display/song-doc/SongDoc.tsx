@@ -122,13 +122,9 @@ const NO_VALUE = "—";
 function SongHeader({ song, view }: SongHeaderProps): ReactElement | null {
   const intl = useIntl();
 
-  // Printing the original key means the sheet has to say both where it is
-  // written and where the band is, so it gains a chip either way.
-  const hasMeta = !!(song.key ?? song.capo ?? song.tempo) || view.isOriginal;
-
-  // The three chips travel together: a player scanning the top of the sheet
-  // reads them in the same place every time, dash or no dash.
-  const chips: MetaChip[] = [
+  // Only values the song actually carries get a chip — a dash says nothing a
+  // player needs. Unset ones are dropped below.
+  const allChips: MetaChip[] = [
     {
       label: intl.formatMessage({
         description: "SongDoc: sheet meta chip label - musical key",
@@ -162,7 +158,7 @@ function SongHeader({ song, view }: SongHeaderProps): ReactElement | null {
   ];
 
   if (view.isOriginal) {
-    chips.push({
+    allChips.push({
       label: intl.formatMessage({
         description: "SongDoc: sheet meta chip label - semitones to transpose by while playing",
         defaultMessage: "Transpose",
@@ -171,6 +167,9 @@ function SongHeader({ song, view }: SongHeaderProps): ReactElement | null {
       value: view.offset > 0 ? `+${view.offset}` : String(view.offset),
     });
   }
+
+  const chips = allChips.filter((chip) => chip.value !== NO_VALUE);
+  const hasMeta = chips.length > 0;
 
   if (!song.title && !song.artist && !hasMeta && song.order === undefined) return null;
 
