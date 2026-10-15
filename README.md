@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="packages/ui/src/Branding/assets/song-print-512x512.svg" alt="Song Print logo" width="128" height="128" />
+</p>
+
 # Song Print
 
 [![GitHub](https://img.shields.io/badge/license-MIT-green)](https://github.com/Pettor/app-song-print/blob/main/LICENSE)
