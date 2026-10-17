@@ -1,0 +1,7 @@
+import{i as e}from"./preload-helper-CT_b8DTk.js";import{r as t}from"./iframe-CPvST--1.js";import{n,t as r}from"./SongDoc-BYSbzQEs.js";function i({song:e,songId:t,chordStyle:n,keyBasis:i,containerRef:o}){return e?(0,a.jsx)(`div`,{ref:o,"data-song-id":t,className:`pointer-events-none fixed top-0 left-[-100000px]`,"aria-hidden":!0,inert:!0,children:(0,a.jsx)(r,{song:e,chordStyle:n,keyBasis:i})}):null}var a,o=e((()=>{n(),a=t(),i.__docgenInfo={description:`Off-screen render target for exporting songs that are not the one on screen.
+
+Sheets have to be laid out by the browser before they can be captured —
+\`SongDoc\` measures real rendered heights — so a catalog export mounts one
+song at a time here, at natural page size and unzoomed, and photographs it.
+Positioned off-screen rather than hidden: \`visibility: hidden\` would capture
+blank pages.`,methods:[],displayName:`SongPrintExportStage`,props:{song:{required:!0,tsType:{name:`union`,raw:`Song | null`,elements:[{name:`Song`},{name:`null`}]},description:`The song being photographed, or null when no export is running.`},songId:{required:!0,tsType:{name:`string`},description:`Which library song is mounted, so the capture waits for the right one.`},chordStyle:{required:!0,tsType:{name:`ChordStyle`},description:``},keyBasis:{required:!0,tsType:{name:`KeyBasis`},description:``},containerRef:{required:!0,tsType:{name:`RefObject`,elements:[{name:`union`,raw:`HTMLDivElement | null`,elements:[{name:`HTMLDivElement`},{name:`null`}]}],raw:`RefObject<HTMLDivElement | null>`},description:``}}}}));export{o as n,i as t};
