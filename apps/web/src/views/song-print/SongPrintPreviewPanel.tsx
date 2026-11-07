@@ -9,6 +9,7 @@ export interface SongPrintPreviewPanelProps {
   song: Song;
   chordStyle: ChordStyle;
   keyBasis: KeyBasis;
+  punchMargin: boolean;
   scale: number;
   containerRef: RefObject<HTMLDivElement | null>;
 }
@@ -17,6 +18,7 @@ export function SongPrintPreviewPanel({
   song,
   chordStyle,
   keyBasis,
+  punchMargin,
   scale,
   containerRef,
 }: SongPrintPreviewPanelProps): ReactElement {
@@ -36,7 +38,7 @@ export function SongPrintPreviewPanel({
     >
       <div className="px-10 py-9 pb-16">
         <div className="sp-scalewrap" style={{ zoom: scale } as CSSProperties}>
-          <SongDoc song={song} chordStyle={chordStyle} keyBasis={keyBasis} />
+          <SongDoc song={song} chordStyle={chordStyle} keyBasis={keyBasis} punchMargin={punchMargin} />
         </div>
       </div>
     </div>

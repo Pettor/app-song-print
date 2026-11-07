@@ -33,6 +33,7 @@ const defaultArgs = {
   song: exampleSong,
   chordStyle: "chip",
   keyBasis: "transposed",
+  punchMargin: false,
   scale: 1,
   containerRef: { current: null },
 } satisfies ComponentProps;

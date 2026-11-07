@@ -136,6 +136,16 @@ export const PlainChords: Story = {
   args: { song: exampleSong, chordStyle: "plain" } satisfies ComponentProps,
 };
 
+/** Wide side margins so the sheet can be hole-punched for a binder. */
+export const PunchMargin: Story = {
+  args: { song: exampleSong, punchMargin: true } satisfies ComponentProps,
+  play: async ({ canvasElement }) => {
+    const page = canvasElement.querySelector<HTMLElement>(".sp-page");
+    await expect(page && getComputedStyle(page).paddingLeft).toBe("96px");
+    await expect(page && getComputedStyle(page).paddingRight).toBe("96px");
+  },
+};
+
 /**
  * `[bl]` breaks the line and leaves a blank one behind it, which is how two
  * lyric groups inside one section are spaced apart.

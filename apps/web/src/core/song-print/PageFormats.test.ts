@@ -36,6 +36,13 @@ describe("columnWidth / columnHeight", () => {
     expect(columnWidth(spec)).toBeCloseTo(333, 0);
   });
 
+  it("narrows the columns by the punch margin, equally on both sides", () => {
+    const spec = getPageSpec({ columns: 2 }, { punchMargin: true });
+    expect(spec).toMatchObject({ padLeft: 96, padRight: 96 });
+    // (794 - 96*2 - 32) / 2
+    expect(columnWidth(spec)).toBeCloseTo(285, 0);
+  });
+
   it("computes usable height from top/bottom padding", () => {
     const spec = getPageSpec();
     expect(columnHeight(spec)).toBe(1122 - 40 - 52);

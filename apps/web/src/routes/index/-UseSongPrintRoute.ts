@@ -9,7 +9,7 @@ import { useSongPreviewScale } from "./-UseSongPreviewScale";
 import { useSongTranspose } from "./-UseSongTranspose";
 import { lastPresetIdAtom } from "~/core/song-print/LastPresetAtoms";
 import { SHEET_FONT_MAX, SHEET_FONT_MIN, getPageSpec } from "~/core/song-print/PageFormats";
-import { chordStyleAtom, keyBasisAtom, sourceOpenAtom } from "~/core/song-print/SheetPrefsAtoms";
+import { chordStyleAtom, keyBasisAtom, punchMarginAtom, sourceOpenAtom } from "~/core/song-print/SheetPrefsAtoms";
 import { downloadSong, openSongFile, savePreset, toFilename, writeSongFile } from "~/core/song-print/SongFileIo";
 import { SONGS, SONGS_SOURCE } from "~/core/song-print/SongLibrary";
 import type { PageFormat, Preset } from "~/core/song-print/SongTypes";
@@ -41,6 +41,7 @@ export function useSongPrintRoute(): SongPrintViewProps {
 
   const [chordStyle, setChordStyle] = useAtom(chordStyleAtom);
   const [keyBasis, setKeyBasis] = useAtom(keyBasisAtom);
+  const [punchMargin, setPunchMargin] = useAtom(punchMarginAtom);
   const [isSourceOpen, setIsSourceOpen] = useAtom(sourceOpenAtom);
   const [, setThemeMode] = useAtom(themeModeAtom);
   const resolvedTheme = useAtomValue(resolvedThemeModeAtom);
@@ -208,6 +209,8 @@ export function useSongPrintRoute(): SongPrintViewProps {
         onFormatChange: (format: PageFormat) => editor.setPage({ format }),
         chordStyle,
         onChordStyleChange: setChordStyle,
+        punchMargin,
+        onPunchMarginChange: setPunchMargin,
         onOpenTranspose: transpose.open,
         isDisabled: !!editor.error,
       },
@@ -240,6 +243,7 @@ export function useSongPrintRoute(): SongPrintViewProps {
       song: editor.song,
       chordStyle,
       keyBasis,
+      punchMargin,
       scale: preview.scale,
       containerRef: preview.containerRef,
     },
@@ -248,6 +252,7 @@ export function useSongPrintRoute(): SongPrintViewProps {
       songId: catalogExport.stageSongId,
       chordStyle,
       keyBasis,
+      punchMargin,
       containerRef: catalogExport.stageRef,
     },
     transpose: transpose.modal,

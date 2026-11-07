@@ -40,6 +40,8 @@ const defaultArgs = {
     onFormatChange: fn(),
     chordStyle: "chip",
     onChordStyleChange: fn(),
+    punchMargin: false,
+    onPunchMarginChange: fn(),
     onOpenTranspose: fn(),
     isDisabled: false,
   },

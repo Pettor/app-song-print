@@ -14,6 +14,13 @@ export interface ResolvedPage {
   mmHeight: number;
   columns: number;
   fontSize: number;
+  padLeft: number;
+  padRight: number;
+}
+
+export interface PageOptions {
+  /** Widen the side margins so a hole punch clears the text. */
+  punchMargin?: boolean;
 }
 
 /** Sheet font sizes the tools menu offers, and the renderer honours. */
@@ -21,6 +28,11 @@ export const SHEET_FONT_MIN = 9;
 export const SHEET_FONT_MAX = 22;
 
 export const PAGE_PAD_X = 48;
+/**
+ * Extra side margin for a hole punch: 48 + 48px is ~25mm, clear of the holes.
+ * Added to both sides so the page still sits centred.
+ */
+export const PUNCH_MARGIN = 48;
 export const PAGE_PAD_TOP = 40;
 export const PAGE_PAD_BOTTOM = 52;
 export const COLUMN_GUTTER = 32;
@@ -31,12 +43,14 @@ function clamp(n: number, lo: number, hi: number): number {
 }
 
 /** Fill in every default so a half-written JSON still renders. */
-export function getPageSpec(page?: PageSpec): ResolvedPage {
+export function getPageSpec(page?: PageSpec, options?: PageOptions): ResolvedPage {
   const f = FORMATS[page?.format ?? "A4"] ?? FORMATS.A4;
   const landscape = page?.orientation === "landscape";
 
   const columns = clamp(Math.round(page?.columns ?? 1), 1, 3);
   const fontSize = clamp(page?.fontSize ?? 13, 7, 28);
+
+  const padX = PAGE_PAD_X + (options?.punchMargin ? PUNCH_MARGIN : 0);
 
   return {
     width: landscape ? f.h : f.w,
@@ -45,12 +59,14 @@ export function getPageSpec(page?: PageSpec): ResolvedPage {
     mmHeight: landscape ? f.mmW : f.mmH,
     columns,
     fontSize,
+    padLeft: padX,
+    padRight: padX,
   };
 }
 
 /** Usable width of a single column, accounting for padding and the gutters. */
 export function columnWidth(p: ResolvedPage): number {
-  const inner = p.width - PAGE_PAD_X * 2;
+  const inner = p.width - p.padLeft - p.padRight;
   return (inner - COLUMN_GUTTER * (p.columns - 1)) / p.columns;
 }
 

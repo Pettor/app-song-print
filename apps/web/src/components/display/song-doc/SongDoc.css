@@ -21,7 +21,8 @@
   --sp-col-w: 698px;
   --sp-page-w: 794px;
   --sp-page-h: 1122px;
-  --sp-pad-x: 48px;
+  --sp-pad-left: 48px;
+  --sp-pad-right: 48px;
   --sp-pad-top: 40px;
   --sp-pad-bottom: 52px;
   --sp-gutter: 32px;
@@ -32,7 +33,7 @@
   position: relative;
   width: var(--sp-page-w);
   height: var(--sp-page-h);
-  padding: var(--sp-pad-top) var(--sp-pad-x) var(--sp-pad-bottom);
+  padding: var(--sp-pad-top) var(--sp-pad-right) var(--sp-pad-bottom) var(--sp-pad-left);
   background: #fff;
   color: #111;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.13);
@@ -249,9 +250,9 @@
    exactly the column height the measurement pass used. */
 .sp-foot {
   position: absolute;
-  right: var(--sp-pad-x);
+  right: var(--sp-pad-right);
   bottom: 18px;
-  left: var(--sp-pad-x);
+  left: var(--sp-pad-left);
   display: flex;
   justify-content: space-between;
   gap: 16px;

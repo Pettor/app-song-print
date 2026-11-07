@@ -19,6 +19,8 @@ const defaultArgs = {
   onFormatChange: fn(),
   chordStyle: "chip",
   onChordStyleChange: fn(),
+  punchMargin: false,
+  onPunchMarginChange: fn(),
   onOpenTranspose: fn(),
   isDisabled: false,
 } satisfies ComponentProps;
@@ -54,5 +56,16 @@ export const OpeningTranspose: Story = {
     await userEvent.click(canvas.getByText("Transpose sheet"));
 
     await expect(args.onOpenTranspose).toHaveBeenCalled();
+  },
+};
+
+export const TogglingPunchMargin: Story = {
+  args: defaultArgs,
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+
+    await userEvent.click(canvas.getByRole("switch", { name: "Hole-punch margin" }));
+
+    await expect(args.onPunchMarginChange).toHaveBeenCalledWith(true);
   },
 };

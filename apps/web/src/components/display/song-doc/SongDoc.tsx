@@ -12,7 +12,6 @@ import {
   COLUMN_GUTTER,
   PAGE_PAD_BOTTOM,
   PAGE_PAD_TOP,
-  PAGE_PAD_X,
   SECTION_GAP,
   columnHeight,
   columnWidth,
@@ -265,6 +264,8 @@ export interface SongDocProps {
   chordStyle?: ChordStyle;
   /** Which key the chords are written in when the song carries a transpose offset. */
   keyBasis?: KeyBasis;
+  /** Widen the side margins so a hole punch clears the text. */
+  punchMargin?: boolean;
 }
 
 /**
@@ -276,8 +277,9 @@ export function SongDoc({
   song,
   chordStyle = DEFAULT_CHORD_STYLE,
   keyBasis = DEFAULT_KEY_BASIS,
+  punchMargin = false,
 }: SongDocProps): ReactElement {
-  const page = getPageSpec(song.page);
+  const page = getPageSpec(song.page, { punchMargin });
   const view = transposeView(song, keyBasis);
   const sections = useMemo(() => prepare(song.sections ?? [], view.shift), [song.sections, view.shift]);
 
@@ -426,7 +428,8 @@ export function SongDoc({
     "--sp-col-w": `${colW}px`,
     "--sp-page-w": `${page.width}px`,
     "--sp-page-h": `${page.height}px`,
-    "--sp-pad-x": `${PAGE_PAD_X}px`,
+    "--sp-pad-left": `${page.padLeft}px`,
+    "--sp-pad-right": `${page.padRight}px`,
     "--sp-pad-top": `${PAGE_PAD_TOP}px`,
     "--sp-pad-bottom": `${PAGE_PAD_BOTTOM}px`,
     "--sp-gutter": `${COLUMN_GUTTER}px`,

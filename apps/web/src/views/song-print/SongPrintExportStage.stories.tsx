@@ -29,6 +29,7 @@ const defaultArgs = {
   songId: "example",
   chordStyle: "chip",
   keyBasis: "transposed",
+  punchMargin: false,
   containerRef: { current: null },
 } satisfies ComponentProps;
 

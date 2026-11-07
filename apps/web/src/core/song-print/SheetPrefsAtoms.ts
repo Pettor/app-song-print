@@ -22,3 +22,9 @@ export const sourceOpenAtom = atomWithStorage<boolean>("songprint.sourceOpen", t
  * property of the player reading it, not of the song, so it lives here.
  */
 export const keyBasisAtom = atomWithStorage<KeyBasis>("songprint.keyBasis", DEFAULT_KEY_BASIS);
+
+/**
+ * Whether sheets leave wide side margins for a hole punch. Set by whoever
+ * prints and files the sheets, not by the song, so it lives here.
+ */
+export const punchMarginAtom = atomWithStorage<boolean>("songprint.punchMargin", false);

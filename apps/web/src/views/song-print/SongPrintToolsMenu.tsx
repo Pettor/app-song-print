@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 import { MinusIcon, PlusIcon } from "@heroicons/react/20/solid";
-import { Button, Separator, ToggleButton, ToggleButtonGroup } from "@heroui/react";
+import { Button, Separator, Switch, ToggleButton, ToggleButtonGroup } from "@heroui/react";
 import { useIntl } from "react-intl";
 import type { ChordStyle } from "~/core/song-print/ChordStyle";
 import { CHORD_STYLES } from "~/core/song-print/ChordStyle";
@@ -17,6 +17,9 @@ export interface SongPrintToolsMenuProps {
   onFormatChange: (format: PageFormat) => void;
   chordStyle: ChordStyle;
   onChordStyleChange: (chordStyle: ChordStyle) => void;
+  /** Wide side margins so the sheets can be hole-punched without losing text. */
+  punchMargin: boolean;
+  onPunchMarginChange: (punchMargin: boolean) => void;
   onOpenTranspose: () => void;
   /** Page settings are written back into the JSON, so a broken document locks them. */
   isDisabled: boolean;
@@ -29,6 +32,8 @@ export function SongPrintToolsMenu({
   onFormatChange,
   chordStyle,
   onChordStyleChange,
+  punchMargin,
+  onPunchMarginChange,
   onOpenTranspose,
   isDisabled,
 }: SongPrintToolsMenuProps): ReactElement {
@@ -186,6 +191,21 @@ export function SongPrintToolsMenu({
           ))}
         </ToggleButtonGroup>
       </div>
+
+      <Switch isSelected={punchMargin} onChange={onPunchMarginChange}>
+        <Switch.Content className="w-full justify-between gap-2">
+          <span className="text-sm font-medium">
+            {intl.formatMessage({
+              description: "SongPrintToolsMenu: label - toggle wide side margins for hole punching",
+              defaultMessage: "Hole-punch margin",
+              id: "9oa0Q/",
+            })}
+          </span>
+          <Switch.Control>
+            <Switch.Thumb />
+          </Switch.Control>
+        </Switch.Content>
+      </Switch>
     </div>
   );
 }
