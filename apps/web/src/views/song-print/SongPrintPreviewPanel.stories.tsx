@@ -34,6 +34,7 @@ const defaultArgs = {
   chordStyle: "chip",
   keyBasis: "transposed",
   punchMargin: false,
+  showFooter: true,
   scale: 1,
   containerRef: { current: null },
 } satisfies ComponentProps;

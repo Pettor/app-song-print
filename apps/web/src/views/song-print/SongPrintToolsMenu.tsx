@@ -20,6 +20,9 @@ export interface SongPrintToolsMenuProps {
   /** Wide side margins so the sheets can be hole-punched without losing text. */
   punchMargin: boolean;
   onPunchMarginChange: (punchMargin: boolean) => void;
+  /** Title, page count and date along the bottom of each page. */
+  showFooter: boolean;
+  onShowFooterChange: (showFooter: boolean) => void;
   onOpenTranspose: () => void;
   /** Page settings are written back into the JSON, so a broken document locks them. */
   isDisabled: boolean;
@@ -34,6 +37,8 @@ export function SongPrintToolsMenu({
   onChordStyleChange,
   punchMargin,
   onPunchMarginChange,
+  showFooter,
+  onShowFooterChange,
   onOpenTranspose,
   isDisabled,
 }: SongPrintToolsMenuProps): ReactElement {
@@ -199,6 +204,21 @@ export function SongPrintToolsMenu({
               description: "SongPrintToolsMenu: label - toggle wide side margins for hole punching",
               defaultMessage: "Hole-punch margin",
               id: "9oa0Q/",
+            })}
+          </span>
+          <Switch.Control>
+            <Switch.Thumb />
+          </Switch.Control>
+        </Switch.Content>
+      </Switch>
+
+      <Switch isSelected={showFooter} onChange={onShowFooterChange}>
+        <Switch.Content className="w-full justify-between gap-2">
+          <span className="text-sm font-medium">
+            {intl.formatMessage({
+              description: "SongPrintToolsMenu: label - toggle the page footer",
+              defaultMessage: "Show footer",
+              id: "lnDAn9",
             })}
           </span>
           <Switch.Control>

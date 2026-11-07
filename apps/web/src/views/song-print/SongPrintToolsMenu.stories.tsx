@@ -21,6 +21,8 @@ const defaultArgs = {
   onChordStyleChange: fn(),
   punchMargin: false,
   onPunchMarginChange: fn(),
+  showFooter: true,
+  onShowFooterChange: fn(),
   onOpenTranspose: fn(),
   isDisabled: false,
 } satisfies ComponentProps;
@@ -67,5 +69,16 @@ export const TogglingPunchMargin: Story = {
     await userEvent.click(canvas.getByRole("switch", { name: "Hole-punch margin" }));
 
     await expect(args.onPunchMarginChange).toHaveBeenCalledWith(true);
+  },
+};
+
+export const HidingFooter: Story = {
+  args: defaultArgs,
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+
+    await userEvent.click(canvas.getByRole("switch", { name: "Show footer" }));
+
+    await expect(args.onShowFooterChange).toHaveBeenCalledWith(false);
   },
 };

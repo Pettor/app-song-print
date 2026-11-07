@@ -9,7 +9,13 @@ import { useSongPreviewScale } from "./-UseSongPreviewScale";
 import { useSongTranspose } from "./-UseSongTranspose";
 import { lastPresetIdAtom } from "~/core/song-print/LastPresetAtoms";
 import { SHEET_FONT_MAX, SHEET_FONT_MIN, getPageSpec } from "~/core/song-print/PageFormats";
-import { chordStyleAtom, keyBasisAtom, punchMarginAtom, sourceOpenAtom } from "~/core/song-print/SheetPrefsAtoms";
+import {
+  chordStyleAtom,
+  keyBasisAtom,
+  punchMarginAtom,
+  showFooterAtom,
+  sourceOpenAtom,
+} from "~/core/song-print/SheetPrefsAtoms";
 import { downloadSong, openSongFile, savePreset, toFilename, writeSongFile } from "~/core/song-print/SongFileIo";
 import { SONGS, SONGS_SOURCE } from "~/core/song-print/SongLibrary";
 import type { PageFormat, Preset } from "~/core/song-print/SongTypes";
@@ -42,6 +48,7 @@ export function useSongPrintRoute(): SongPrintViewProps {
   const [chordStyle, setChordStyle] = useAtom(chordStyleAtom);
   const [keyBasis, setKeyBasis] = useAtom(keyBasisAtom);
   const [punchMargin, setPunchMargin] = useAtom(punchMarginAtom);
+  const [showFooter, setShowFooter] = useAtom(showFooterAtom);
   const [isSourceOpen, setIsSourceOpen] = useAtom(sourceOpenAtom);
   const [, setThemeMode] = useAtom(themeModeAtom);
   const resolvedTheme = useAtomValue(resolvedThemeModeAtom);
@@ -211,6 +218,8 @@ export function useSongPrintRoute(): SongPrintViewProps {
         onChordStyleChange: setChordStyle,
         punchMargin,
         onPunchMarginChange: setPunchMargin,
+        showFooter,
+        onShowFooterChange: setShowFooter,
         onOpenTranspose: transpose.open,
         isDisabled: !!editor.error,
       },
@@ -244,6 +253,7 @@ export function useSongPrintRoute(): SongPrintViewProps {
       chordStyle,
       keyBasis,
       punchMargin,
+      showFooter,
       scale: preview.scale,
       containerRef: preview.containerRef,
     },
@@ -253,6 +263,7 @@ export function useSongPrintRoute(): SongPrintViewProps {
       chordStyle,
       keyBasis,
       punchMargin,
+      showFooter,
       containerRef: catalogExport.stageRef,
     },
     transpose: transpose.modal,

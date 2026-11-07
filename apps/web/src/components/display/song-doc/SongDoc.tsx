@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactElement } from "react";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import clsx from "clsx";
 import { useIntl } from "react-intl";
 import "./SongDoc.css";
 import { ChordLine, ChordRow } from "./ChordLine";
@@ -10,7 +11,6 @@ import { DEFAULT_KEY_BASIS } from "~/core/song-print/KeyBasis";
 import { expandLines } from "~/core/song-print/LineTags";
 import {
   COLUMN_GUTTER,
-  PAGE_PAD_BOTTOM,
   PAGE_PAD_TOP,
   SECTION_GAP,
   columnHeight,
@@ -21,7 +21,8 @@ import { buildColumns, chunkPages } from "~/core/song-print/Paginate";
 import { parseLine } from "~/core/song-print/ParseLine";
 import type { TransposeView } from "~/core/song-print/SongTranspose";
 import { transposeView } from "~/core/song-print/SongTranspose";
-import type { Section, Segment, Song } from "~/core/song-print/SongTypes";
+import type { DialogueLine, Section, Segment, Song } from "~/core/song-print/SongTypes";
+import { splitStageDirections } from "~/core/song-print/StageDirections";
 import { transposeChord } from "~/core/song-print/TransposeChord";
 
 /** One drawn line, with the forced break `[bp]` put in front of it. */
@@ -36,6 +37,7 @@ interface PreparedSection {
   name?: string;
   note?: string;
   chords?: string[];
+  dialogue?: DialogueLine[];
   lines: PreparedLine[];
   /** A `[bp]` after the section's last line: the next section starts a page. */
   breakAfter: boolean;
@@ -56,6 +58,7 @@ function prepare(sections: Section[], semitones: number): PreparedSection[] {
       name: s.name,
       note: s.note,
       chords: s.chords?.map((c) => transposeChord(c, semitones)),
+      dialogue: s.dialogue,
       lines: expanded.lines.map((line) => ({
         ...(line.pageBreak ? { pageBreak: true } : {}),
         segments: parseLine(line.text).map((seg) =>
@@ -98,6 +101,7 @@ function SectionBody({ s, from, to }: SectionBodyProps): ReactElement {
   return (
     <>
       {s.chords && s.chords.length > 0 && from === 0 && <ChordRow chords={s.chords} />}
+      {from === 0 && <SongDialogue lines={s.dialogue} inSection />}
       {s.lines.slice(from, to).map((line, i) => (
         <ChordLine segments={line.segments} key={from + i} />
       ))}
@@ -105,9 +109,44 @@ function SectionBody({ s, from, to }: SectionBodyProps): ReactElement {
   );
 }
 
+interface SongDialogueProps {
+  lines?: DialogueLine[];
+  /** Spoken over a section of the song rather than before it starts. */
+  inSection?: boolean;
+}
+
+/** The scene leading into the song, set like a script: who speaks, then what. */
+function SongDialogue({ lines, inSection = false }: SongDialogueProps): ReactElement | null {
+  const spoken = lines?.filter((l) => l.actor?.trim() || l.text?.trim()) ?? [];
+  if (spoken.length === 0) return null;
+
+  return (
+    <div className={clsx("sp-dialogue", inSection && "sp-dialogue--section")}>
+      {spoken.map((l, i) => (
+        <div className="sp-dialogue-line" key={i}>
+          {l.actor?.trim() && <div className="sp-dialogue-actor">{l.actor.trim()}</div>}
+          <div className="sp-dialogue-text">
+            {splitStageDirections(l.text ?? "").map((part, j) =>
+              part.direction ? (
+                <em className="sp-dialogue-direction" key={j}>
+                  {part.text}
+                </em>
+              ) : (
+                <span key={j}>{part.text}</span>
+              )
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 interface MetaChip {
   label: string;
   value: string;
+  /** Free text rather than a number or key: left-aligned and allowed to wrap. */
+  text?: boolean;
 }
 
 interface SongHeaderProps {
@@ -175,6 +214,16 @@ function SongHeader({ song, view }: SongHeaderProps): ReactElement | null {
     });
   }
 
+  allChips.push({
+    label: intl.formatMessage({
+      description: "SongDoc: sheet meta chip label - free-text notes on how to play the song",
+      defaultMessage: "Notes",
+      id: "PMdrz+",
+    }),
+    value: song.notes?.trim() || NO_VALUE,
+    text: true,
+  });
+
   const chips = allChips.filter((chip) => chip.value !== NO_VALUE);
   const hasMeta = chips.length > 0;
 
@@ -208,7 +257,7 @@ function SongHeader({ song, view }: SongHeaderProps): ReactElement | null {
         {hasMeta && (
           <div className="sp-meta">
             {chips.map((chip) => (
-              <div className="sp-metachip" key={chip.label}>
+              <div className={clsx("sp-metachip", chip.text && "sp-metachip--text")} key={chip.label}>
                 <span className="sp-metalabel">{chip.label}</span>
                 <span className="sp-metavalue">{chip.value}</span>
               </div>
@@ -274,6 +323,8 @@ export interface SongDocProps {
   keyBasis?: KeyBasis;
   /** Widen the side margins so a hole punch clears the text. */
   punchMargin?: boolean;
+  /** Print the title, page count and date along the bottom of each page. */
+  showFooter?: boolean;
 }
 
 /**
@@ -286,8 +337,9 @@ export function SongDoc({
   chordStyle = DEFAULT_CHORD_STYLE,
   keyBasis = DEFAULT_KEY_BASIS,
   punchMargin = false,
+  showFooter = true,
 }: SongDocProps): ReactElement {
-  const page = getPageSpec(song.page, { punchMargin });
+  const page = getPageSpec(song.page, { punchMargin, hideFooter: !showFooter });
   const view = transposeView(song, keyBasis);
   const sections = useMemo(() => prepare(song.sections ?? [], view.shift), [song.sections, view.shift]);
 
@@ -359,7 +411,7 @@ export function SongDoc({
 
       // A section reduced to nothing but a [bp] draws no unit, so pass its
       // break on to the section that follows instead of losing it.
-      if (s.lines.length === 0 && !s.name && !s.note && !s.chords?.length) {
+      if (s.lines.length === 0 && !s.name && !s.note && !s.chords?.length && !s.dialogue?.length) {
         carried = carried || s.breakAfter;
         return;
       }
@@ -439,7 +491,7 @@ export function SongDoc({
     "--sp-pad-left": `${page.padLeft}px`,
     "--sp-pad-right": `${page.padRight}px`,
     "--sp-pad-top": `${PAGE_PAD_TOP}px`,
-    "--sp-pad-bottom": `${PAGE_PAD_BOTTOM}px`,
+    "--sp-pad-bottom": `${page.padBottom}px`,
     "--sp-gutter": `${COLUMN_GUTTER}px`,
     "--sp-gap": `${SECTION_GAP}px`,
   } as CSSProperties;
@@ -447,8 +499,10 @@ export function SongDoc({
   // Off-screen measurement pass, one column wide so heights match the render.
   const measurer = (
     <div className="sp-measure" ref={measRef} style={{ width: colW + "px" }}>
-      <div ref={headRef}>
+      {/* Header and dialogue span the whole page, not one column. */}
+      <div ref={headRef} style={{ width: page.width - page.padLeft - page.padRight + "px" }}>
         <SongHeader song={song} view={view} />
+        <SongDialogue lines={song.dialogue} />
       </div>
       {sections.map((s, i) => (
         <div className="sp-section" data-sec={i} key={i}>
@@ -460,6 +514,8 @@ export function SongDoc({
               <ChordRow chords={s.chords} />
             </div>
           )}
+          {/* Measured as section chrome: it is drawn only with the first part. */}
+          <SongDialogue lines={s.dialogue} inSection />
           {s.lines.map((line, j) => (
             <div data-line="" key={j}>
               <ChordLine segments={line.segments} />
@@ -484,6 +540,7 @@ export function SongDoc({
       {pages.map((cols, pi) => (
         <div className="sp-page" key={pi}>
           {pi === 0 && <SongHeader song={song} view={view} />}
+          {pi === 0 && <SongDialogue lines={song.dialogue} />}
           <div className="sp-cols" data-columns={page.columns}>
             {cols.map((colUnits, ci) => (
               <div className="sp-col" key={ci}>
@@ -494,7 +551,7 @@ export function SongDoc({
               </div>
             ))}
           </div>
-          <SongFoot song={song} view={view} page={pi + 1} total={total} />
+          {showFooter && <SongFoot song={song} view={view} page={pi + 1} total={total} />}
         </div>
       ))}
     </div>

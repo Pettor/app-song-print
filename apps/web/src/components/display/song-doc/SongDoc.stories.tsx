@@ -99,6 +99,82 @@ export const WithTimeSignature: Story = {
   },
 };
 
+/** Lines spoken before the song, with a stage direction in parentheses. */
+export const WithDialogue: Story = {
+  args: {
+    song: {
+      ...exampleSong,
+      dialogue: [
+        { actor: "Anna", text: "Are we starting?" },
+        { actor: "Bo", text: "Right after this. (picks up the guitar, counts in" },
+      ],
+    },
+  } satisfies ComponentProps,
+  play: async ({ canvasElement }) => {
+    const drawn = canvasElement.querySelector(".sp-page");
+    const actors = Array.from(drawn?.querySelectorAll(".sp-dialogue-actor") ?? []).map((a) => a.textContent);
+    await expect(actors).toEqual(["Anna", "Bo"]);
+    await expect(drawn?.querySelector(".sp-dialogue-direction")?.textContent).toBe("(picks up the guitar, counts in");
+  },
+};
+
+/** Lines spoken while a section plays, between its chords and its lyrics. */
+export const WithSectionDialogue: Story = {
+  args: {
+    song: {
+      ...exampleSong,
+      sections: [
+        {
+          name: "Intro",
+          note: "piano & bass",
+          chords: ["C", "G"],
+          dialogue: [{ text: "(music starts on the next line)" }, { actor: "Anna", text: "Here we go!" }],
+        },
+        ...(exampleSong.sections ?? []),
+      ],
+    },
+  } satisfies ComponentProps,
+  play: async ({ canvasElement }) => {
+    const section = canvasElement.querySelector(".sp-page .sp-section");
+    await expect(section?.querySelector(".sp-dialogue--section .sp-dialogue-actor")?.textContent).toBe("Anna");
+  },
+};
+
+export const WithNotes: Story = {
+  args: { song: { ...exampleSong, notes: "Fingerpicked guitar" } } satisfies ComponentProps,
+  play: async ({ canvasElement }) => {
+    await expect(metaChips(canvasElement).Notes).toBe("Fingerpicked guitar");
+  },
+};
+
+export const WithoutFooter: Story = {
+  args: { song: exampleSong, showFooter: false } satisfies ComponentProps,
+  play: async ({ canvasElement }) => {
+    await expect(canvasElement.querySelector(".sp-page .sp-foot")).toBeNull();
+  },
+};
+
+/** A lyric longer than its column wraps inside it rather than running into the next. */
+export const LongLineInTwoColumns: Story = {
+  args: {
+    song: {
+      ...exampleSong,
+      page: { ...exampleSong.page, columns: 2 },
+      sections: [
+        {
+          name: "Verse 1",
+          lines: ["[E]Blicken blir stirrig jag känner mig virrig var gång jag ser High Chaparall"],
+        },
+      ],
+    },
+  } satisfies ComponentProps,
+  play: async ({ canvasElement }) => {
+    const col = canvasElement.querySelector<HTMLElement>(".sp-page .sp-col");
+    const line = col?.querySelector<HTMLElement>(".sp-line");
+    await expect(line && col && line.scrollWidth <= col.clientWidth).toBe(true);
+  },
+};
+
 export const Transposed: Story = {
   args: { song: { ...exampleSong, transpose: 2 } } satisfies ComponentProps,
   play: async ({ canvasElement }) => {

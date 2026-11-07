@@ -12,6 +12,7 @@ export interface SongPrintExportStageProps {
   chordStyle: ChordStyle;
   keyBasis: KeyBasis;
   punchMargin: boolean;
+  showFooter: boolean;
   containerRef: RefObject<HTMLDivElement | null>;
 }
 
@@ -30,6 +31,7 @@ export function SongPrintExportStage({
   chordStyle,
   keyBasis,
   punchMargin,
+  showFooter,
   containerRef,
 }: SongPrintExportStageProps): ReactElement | null {
   if (!song) return null;
@@ -42,7 +44,13 @@ export function SongPrintExportStage({
       aria-hidden
       inert
     >
-      <SongDoc song={song} chordStyle={chordStyle} keyBasis={keyBasis} punchMargin={punchMargin} />
+      <SongDoc
+        song={song}
+        chordStyle={chordStyle}
+        keyBasis={keyBasis}
+        punchMargin={punchMargin}
+        showFooter={showFooter}
+      />
     </div>
   );
 }

@@ -84,6 +84,9 @@ export function SongPrintLiveOverlay({
   if (song.timeSignature?.trim()) {
     meta.push(song.timeSignature.trim());
   }
+  if (song.notes?.trim()) {
+    meta.push(song.notes.trim());
+  }
   if (song.capo) {
     meta.push(
       intl.formatMessage(

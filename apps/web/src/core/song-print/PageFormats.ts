@@ -16,11 +16,14 @@ export interface ResolvedPage {
   fontSize: number;
   padLeft: number;
   padRight: number;
+  padBottom: number;
 }
 
 export interface PageOptions {
   /** Widen the side margins so a hole punch clears the text. */
   punchMargin?: boolean;
+  /** Leave out the footer, and give its room back to the columns. Defaults to shown. */
+  hideFooter?: boolean;
 }
 
 /** Sheet font sizes the tools menu offers, and the renderer honours. */
@@ -35,6 +38,8 @@ export const PAGE_PAD_X = 48;
 export const PUNCH_MARGIN = 48;
 export const PAGE_PAD_TOP = 40;
 export const PAGE_PAD_BOTTOM = 52;
+/** Bottom margin with no footer to make room for: the same as the top. */
+export const PAGE_PAD_BOTTOM_BARE = PAGE_PAD_TOP;
 export const COLUMN_GUTTER = 32;
 export const SECTION_GAP = 18;
 
@@ -61,6 +66,7 @@ export function getPageSpec(page?: PageSpec, options?: PageOptions): ResolvedPag
     fontSize,
     padLeft: padX,
     padRight: padX,
+    padBottom: options?.hideFooter ? PAGE_PAD_BOTTOM_BARE : PAGE_PAD_BOTTOM,
   };
 }
 
@@ -72,5 +78,5 @@ export function columnWidth(p: ResolvedPage): number {
 
 /** Usable height of a column. */
 export function columnHeight(p: ResolvedPage): number {
-  return p.height - PAGE_PAD_TOP - PAGE_PAD_BOTTOM;
+  return p.height - PAGE_PAD_TOP - p.padBottom;
 }

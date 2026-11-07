@@ -42,6 +42,8 @@ const defaultArgs = {
     onChordStyleChange: fn(),
     punchMargin: false,
     onPunchMarginChange: fn(),
+    showFooter: true,
+    onShowFooterChange: fn(),
     onOpenTranspose: fn(),
     isDisabled: false,
   },

@@ -47,4 +47,9 @@ describe("columnWidth / columnHeight", () => {
     const spec = getPageSpec();
     expect(columnHeight(spec)).toBe(1122 - 40 - 52);
   });
+
+  it("gives the footer's room back to the columns when it is hidden", () => {
+    const spec = getPageSpec(undefined, { hideFooter: true });
+    expect(columnHeight(spec)).toBe(1122 - 40 - 40);
+  });
 });

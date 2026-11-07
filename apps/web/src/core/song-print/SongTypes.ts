@@ -14,11 +14,21 @@ export const PageSpecSchema = z.object({
 });
 export type PageSpec = z.infer<typeof PageSpecSchema>;
 
+export const DialogueLineSchema = z.object({
+  /** Who speaks it. Left out, the line is a bare stage direction. */
+  actor: z.string().optional(),
+  /** What they say; `(parentheses)` mark stage directions. */
+  text: z.string().optional(),
+});
+export type DialogueLine = z.infer<typeof DialogueLineSchema>;
+
 export const SectionSchema = z.object({
   name: z.string().optional(),
   lines: z.array(z.string()).optional(),
   chords: z.array(z.string()).optional(),
   note: z.string().optional(),
+  /** Lines spoken while the section plays, printed under its chords. */
+  dialogue: z.array(DialogueLineSchema).optional(),
 });
 export type Section = z.infer<typeof SectionSchema>;
 
@@ -37,8 +47,12 @@ export const SongSchema = z.object({
   tempo: z.number().optional(),
   /** Time signature as written, e.g. "3/4". */
   timeSignature: z.string().optional(),
+  /** Short playing-style hint shown beside the tempo, e.g. "Knäppa på gitarr". */
+  notes: z.string().optional(),
   transpose: z.number().optional(),
   page: PageSpecSchema.optional(),
+  /** Lines spoken before the song starts, printed above it as the cue in. */
+  dialogue: z.array(DialogueLineSchema).optional(),
   sections: z.array(SectionSchema).optional(),
 });
 export type Song = z.infer<typeof SongSchema>;

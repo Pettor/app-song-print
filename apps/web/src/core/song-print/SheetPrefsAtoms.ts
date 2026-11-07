@@ -28,3 +28,6 @@ export const keyBasisAtom = atomWithStorage<KeyBasis>("songprint.keyBasis", DEFA
  * prints and files the sheets, not by the song, so it lives here.
  */
 export const punchMarginAtom = atomWithStorage<boolean>("songprint.punchMargin", false);
+
+/** Whether sheets print the title, page count and date along the bottom. */
+export const showFooterAtom = atomWithStorage<boolean>("songprint.showFooter", true);
