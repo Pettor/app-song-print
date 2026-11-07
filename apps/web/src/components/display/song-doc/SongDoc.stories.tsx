@@ -92,6 +92,13 @@ export const SetlistOrder: Story = {
   },
 };
 
+export const WithTimeSignature: Story = {
+  args: { song: { ...exampleSong, timeSignature: "3/4" } } satisfies ComponentProps,
+  play: async ({ canvasElement }) => {
+    await expect(metaChips(canvasElement).Time).toBe("3/4");
+  },
+};
+
 export const Transposed: Story = {
   args: { song: { ...exampleSong, transpose: 2 } } satisfies ComponentProps,
   play: async ({ canvasElement }) => {

@@ -101,7 +101,7 @@
   color: #6b7080;
 }
 
-/* Key/capo/tempo, one tile each, so they stay readable at arm's length. */
+/* Key/capo/tempo/time, one tile each, so they stay readable at arm's length. */
 .sp-meta {
   display: flex;
   flex: none;

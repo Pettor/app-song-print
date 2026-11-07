@@ -154,6 +154,14 @@ function SongHeader({ song, view }: SongHeaderProps): ReactElement | null {
       }),
       value: song.tempo ? String(song.tempo) : NO_VALUE,
     },
+    {
+      label: intl.formatMessage({
+        description: "SongDoc: sheet meta chip label - time signature",
+        defaultMessage: "Time",
+        id: "D6we1R",
+      }),
+      value: song.timeSignature?.trim() || NO_VALUE,
+    },
   ];
 
   if (view.isOriginal) {

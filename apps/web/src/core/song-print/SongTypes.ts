@@ -35,6 +35,8 @@ export const SongSchema = z.object({
   key: z.string().optional(),
   capo: z.number().optional(),
   tempo: z.number().optional(),
+  /** Time signature as written, e.g. "3/4". */
+  timeSignature: z.string().optional(),
   transpose: z.number().optional(),
   page: PageSpecSchema.optional(),
   sections: z.array(SectionSchema).optional(),
