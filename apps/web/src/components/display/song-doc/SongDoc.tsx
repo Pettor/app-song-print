@@ -19,6 +19,7 @@ import {
 } from "~/core/song-print/PageFormats";
 import { buildColumns, chunkPages } from "~/core/song-print/Paginate";
 import { parseLine } from "~/core/song-print/ParseLine";
+import { repeatLabel } from "~/core/song-print/SectionRepeat";
 import type { TransposeView } from "~/core/song-print/SongTranspose";
 import { transposeView } from "~/core/song-print/SongTranspose";
 import type { DialogueLine, Section, Segment, Song } from "~/core/song-print/SongTypes";
@@ -34,7 +35,9 @@ interface PreparedLine {
 
 /** A section with its lines already expanded, parsed and transposed. */
 interface PreparedSection {
+  cue?: string;
   name?: string;
+  repeat?: number;
   note?: string;
   chords?: string[];
   dialogue?: DialogueLine[];
@@ -55,7 +58,9 @@ function prepare(sections: Section[], semitones: number): PreparedSection[] {
   return sections.map((s) => {
     const expanded = expandLines(s.lines ?? []);
     return {
+      cue: s.cue,
       name: s.name,
+      repeat: s.repeat,
       note: s.note,
       chords: s.chords?.map((c) => transposeChord(c, semitones)),
       dialogue: s.dialogue,
@@ -71,20 +76,55 @@ function prepare(sections: Section[], semitones: number): PreparedSection[] {
 }
 
 interface SectionHeadProps {
+  cue?: string;
   name?: string;
+  repeat?: number;
   note?: string;
   continued?: boolean;
 }
 
-function SectionHead({ name, note, continued }: SectionHeadProps): ReactElement | null {
-  if (!name && !note) return null;
+/**
+ * How the section is started, labelled and set apart from the playing note —
+ * on the first page of a setlist it is the line a player looks for before the
+ * first chord, so it is drawn above the section name rather than beside it.
+ */
+function SectionCue({ cue }: { cue?: string }): ReactElement | null {
+  const intl = useIntl();
+  const text = cue?.trim();
+  if (!text) return null;
+
+  return (
+    <div className="sp-seccue">
+      <span className="sp-seccuelabel">
+        {intl.formatMessage({
+          description: "SongDoc: sheet section - label on the line saying how the section is started",
+          defaultMessage: "Start",
+          id: "zNN1jL",
+        })}
+      </span>
+      <span className="sp-seccuetext">{text}</span>
+    </div>
+  );
+}
+
+function SectionHead({ cue, name, repeat, note, continued }: SectionHeadProps): ReactElement | null {
+  const repeats = repeatLabel(repeat);
+  if (!cue && !name && !repeats && !note) return null;
   return (
     <div className="sp-sechead">
-      {name && (
-        <span className="sp-secname">
-          [{name}
-          {continued ? " cont." : ""}]
-        </span>
+      <SectionCue cue={cue} />
+      {(name || repeats) && (
+        <div className="sp-secnamerow">
+          {name && (
+            <span className="sp-secname">
+              [{name}
+              {continued ? " cont." : ""}]
+            </span>
+          )}
+          {/* Drawn on a continuation too: the part on the next page is played
+              the same number of times as the one it carries on from. */}
+          {repeats && <span className="sp-secrepeat">{repeats}</span>}
+        </div>
       )}
       {note && <span className="sp-secnote">{note}</span>}
     </div>
@@ -411,7 +451,15 @@ export function SongDoc({
 
       // A section reduced to nothing but a [bp] draws no unit, so pass its
       // break on to the section that follows instead of losing it.
-      if (s.lines.length === 0 && !s.name && !s.note && !s.chords?.length && !s.dialogue?.length) {
+      if (
+        s.lines.length === 0 &&
+        !s.cue &&
+        !s.name &&
+        !s.repeat &&
+        !s.note &&
+        !s.chords?.length &&
+        !s.dialogue?.length
+      ) {
         carried = carried || s.breakAfter;
         return;
       }
@@ -477,7 +525,13 @@ export function SongDoc({
     if (!s) return null;
     return (
       <div className="sp-section" key={key}>
-        <SectionHead name={s.name} note={u.continued ? undefined : s.note} continued={u.continued} />
+        <SectionHead
+          cue={u.continued ? undefined : s.cue}
+          name={s.name}
+          repeat={s.repeat}
+          note={u.continued ? undefined : s.note}
+          continued={u.continued}
+        />
         <SectionBody s={s} from={u.from} to={u.to} />
       </div>
     );
@@ -507,7 +561,7 @@ export function SongDoc({
       {sections.map((s, i) => (
         <div className="sp-section" data-sec={i} key={i}>
           <div data-head="">
-            <SectionHead name={s.name} note={s.note} />
+            <SectionHead cue={s.cue} name={s.name} repeat={s.repeat} note={s.note} />
           </div>
           {s.chords && s.chords.length > 0 && (
             <div data-chords="">

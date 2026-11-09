@@ -4,12 +4,16 @@ import type { KeyBasis } from "~/core/song-print/KeyBasis";
 import { DEFAULT_KEY_BASIS } from "~/core/song-print/KeyBasis";
 import { expandLines } from "~/core/song-print/LineTags";
 import { parseLine } from "~/core/song-print/ParseLine";
+import { repeatLabel } from "~/core/song-print/SectionRepeat";
 import { transposeView } from "~/core/song-print/SongTranspose";
 import type { Section, Segment, Song } from "~/core/song-print/SongTypes";
 import { transposeChord } from "~/core/song-print/TransposeChord";
 
 interface PreparedSection {
+  cue?: string;
   name?: string;
+  /** Already formatted for the stand, e.g. `x4`; null when it is not worth showing. */
+  repeat: string | null;
   note?: string;
   lines: Segment[][];
 }
@@ -31,7 +35,7 @@ function prepare(sections: Section[], semitones: number): PreparedSection[] {
         parseLine(line.text).map((seg) => (seg.chord ? { ...seg, chord: transposeChord(seg.chord, semitones) } : seg))
       );
     }
-    return { name: s.name, note: s.note, lines };
+    return { cue: s.cue, name: s.name, repeat: repeatLabel(s.repeat), note: s.note, lines };
   });
 }
 
@@ -61,12 +65,18 @@ export function SongStage({ song, fontSize, columns = 1, keyBasis = DEFAULT_KEY_
     <div className="mx-auto max-w-[1400px]" style={{ columnCount: columns, columnGap: "60px" }}>
       {sections.map((section, si) => (
         <section className="mb-8 break-inside-avoid" key={si}>
-          {(section.name ?? section.note) && (
+          {section.cue && (
+            <div className="mb-2 text-[15px] font-medium tracking-wide text-amber-200/75">{section.cue}</div>
+          )}
+          {(section.name || section.repeat || section.note) && (
             <div className="mb-3 inline-flex items-baseline gap-2.5 rounded-full bg-blue-500/15 px-3 py-1">
               {section.name && (
                 <span className="text-[15px] font-semibold tracking-[0.08em] text-blue-300 uppercase">
                   {section.name}
                 </span>
+              )}
+              {section.repeat && (
+                <span className="font-mono text-[14px] font-bold text-blue-200">{section.repeat}</span>
               )}
               {section.note && <span className="text-[13px] text-white/45">{section.note}</span>}
             </div>

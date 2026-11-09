@@ -218,6 +218,55 @@
   gap: 1px;
   margin-bottom: 2px;
 }
+/* How the section is started: who counts in and who plays. Marked off from the
+   playing note so a cue is never mistaken for one, and labelled because it is
+   read cold, at the top of a sheet, before anything else on the page. */
+.sp-seccue {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin-bottom: 4px;
+  padding: 3px 9px 4px;
+  border-left: 3px solid var(--danger, #d64545);
+  border-radius: 0 5px 5px 0;
+  background: #f5f6f9;
+}
+.sp-seccuelabel {
+  flex: none;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  color: #9a5a5a;
+}
+.sp-seccuetext {
+  font-size: calc(var(--sp-font) * 0.85 + 1.5px);
+  font-weight: 500;
+  line-height: 1.35;
+  color: #3a4050;
+}
+
+/* Name and repeat count share a line; the note still drops below them. */
+.sp-secnamerow {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+/* Solid, so "played four times" is caught from the music stand rather than
+   read out of the section label. */
+.sp-secrepeat {
+  padding: 0 5px 1px;
+  border-radius: 4px;
+  background: var(--accent, #2f6fdd);
+  color: #fff;
+  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  font-size: calc(var(--sp-font) * 0.8);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.5;
+}
+
 .sp-secname {
   font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
   font-size: calc(var(--sp-font) * 0.95);

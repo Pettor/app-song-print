@@ -140,6 +140,44 @@ export const WithSectionDialogue: Story = {
   },
 };
 
+/** How a section starts, printed above its name — the cue a player reads first. */
+export const WithSectionCue: Story = {
+  args: {
+    song: {
+      ...exampleSong,
+      sections: [
+        { cue: "Piano and bass lead in, Anna counts", name: "Intro", chords: ["C", "G", "Am", "F"] },
+        ...(exampleSong.sections ?? []).slice(1),
+      ],
+    },
+  } satisfies ComponentProps,
+  play: async ({ canvasElement }) => {
+    const section = canvasElement.querySelector(".sp-page .sp-section");
+    await expect(section?.querySelector(".sp-seccuelabel")?.textContent).toBe("Start");
+    await expect(section?.querySelector(".sp-seccuetext")?.textContent).toBe("Piano and bass lead in, Anna counts");
+  },
+};
+
+/** `repeat` prints beside the section name as `x2` — how many times it is played. */
+export const WithSectionRepeat: Story = {
+  args: {
+    song: {
+      ...exampleSong,
+      sections: [
+        { name: "Intro", chords: ["C", "G", "Am", "F"], repeat: 2 },
+        { name: "Chorus", lines: ["[C]This line repeats [G]as needed"], repeat: 4 },
+        // Below two plays the count says nothing, so it is left off the page.
+        { name: "Outro", lines: ["[C]Played once"], repeat: 1 },
+      ],
+    },
+  } satisfies ComponentProps,
+  play: async ({ canvasElement }) => {
+    const drawn = canvasElement.querySelector(".sp-page");
+    const repeats = Array.from(drawn?.querySelectorAll(".sp-secrepeat") ?? []).map((r) => r.textContent);
+    await expect(repeats).toEqual(["x2", "x4"]);
+  },
+};
+
 export const WithNotes: Story = {
   args: { song: { ...exampleSong, notes: "Fingerpicked guitar" } } satisfies ComponentProps,
   play: async ({ canvasElement }) => {

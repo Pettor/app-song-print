@@ -127,6 +127,8 @@ also watches the directory and reloads when a file there changes.
 | `sections[].lines`     | Lyrics with `[Chord]` markers. `""` is a blank spacer line, and see [Layout tags](#layout-tags)          |
 | `sections[].chords`    | Bare chord sequence, for intros and breaks                                                               |
 | `sections[].note`      | Small performance note beside the section name                                                           |
+| `sections[].repeat`    | How many times the section is played. Prints beside the name as `x2`; anything below `2` is left off     |
+| `sections[].cue`       | How the section starts (who counts in, who plays). Printed as a labelled line above the section name     |
 
 A chord attaches to the text **after** it. Write `[[` for a literal `[`. Every field except
 `sections` is optional — the preview re-renders on every keystroke, so half-typed JSON has to

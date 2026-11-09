@@ -23,7 +23,11 @@ export const DialogueLineSchema = z.object({
 export type DialogueLine = z.infer<typeof DialogueLineSchema>;
 
 export const SectionSchema = z.object({
+  /** How the section is started — who counts in, who plays — printed above its name. */
+  cue: z.string().optional(),
   name: z.string().optional(),
+  /** How many times the section is played, printed beside its name as `x4`. Below 2 it is left off. */
+  repeat: z.number().optional(),
   lines: z.array(z.string()).optional(),
   chords: z.array(z.string()).optional(),
   note: z.string().optional(),
